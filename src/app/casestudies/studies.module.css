@@ -1,0 +1,151 @@
+.hero {
+  height: 500px;
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.heroContent {
+  width: 100%;
+  max-width: 560px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  align-items: center;
+  text-align: center;
+}
+
+.tab {
+  border: 1px solid #65758B;
+  padding: 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 15px;
+  line-height: 20px;
+  letter-spacing: 0px;
+  text-align: center;
+  vertical-align: middle;
+  text-transform: capitalize;
+  font-family: var(--font-chivo);
+  color: var(--color-nearBlack);
+  min-width: 70px;
+
+  /* Smooth animation */
+  transition: all 0.3s ease;
+}
+
+/* Hover effect */
+.tab:hover {
+  background-color: var(--color-burgundy-hover);
+  color: #fff;
+  border-color: var(--color-burgundy-hover);
+  transform: translateY(-2px);
+  /* slight lift effect */
+}
+
+/* Active / selected tab */
+.tabselected {
+  background-color: var(--color-burgundy) !important;
+  color: white !important;
+  border-color: var(--color-burgundy);
+
+}
+
+
+/* 💻 Laptop (≤1280px) */
+@media (max-width: 1280px) {
+  .hero {
+    height: 450px;
+  }
+
+  .heroContent {
+    max-width: 450px;
+    gap: 12px;
+  }
+
+  .tab {
+    padding: 9px;
+    font-size: 14px;
+  }
+}
+
+/* 💻 Mini Laptop (≤1024px) */
+@media (max-width: 1024px) {
+  .hero {
+    height: 400px;
+  }
+
+  .heroContent {
+    max-width: 400px;
+    gap: 12px;
+  }
+
+  .tab {
+    padding: 8px;
+    font-size: 14px;
+    min-width: 65px;
+  }
+}
+
+/* 📱 Tablet (≤768px) */
+@media (max-width: 768px) {
+  .hero {
+    height: 350px;
+  }
+
+  .heroContent {
+    max-width: 100%;
+    padding: 0 20px;
+    gap: 10px;
+  }
+
+  .tab {
+    padding: 8px 10px;
+    font-size: 13px;
+    min-width: 60px;
+  }
+}
+
+/* 📱 Mobile (≤480px) */
+@media (max-width: 480px) {
+  .hero {
+    height: 280px;
+  }
+
+  .heroContent {
+    padding: 0 16px;
+    gap: 8px;
+  }
+
+  .tab {
+    padding: 6px 8px;
+    font-size: 12px;
+    min-width: auto;
+  }
+}
+
+.heroText {
+  font-weight: 500;
+  font-style: Medium;
+  font-size: 22px;
+  leading-trim: NONE;
+  font-family: var(--font-chivo);
+  line-height: 160%;
+  letter-spacing: 0%;
+  vertical-align: middle;
+  color: #F5F5F5;
+
+}
+
+.heroText strong {
+  font-weight: 800;
+  font-size: 20px;
+  leading-trim: NONE;
+  line-height: 160%;
+  letter-spacing: 0%;
+  vertical-align: middle;
+  color: #F5F5F5;
+}

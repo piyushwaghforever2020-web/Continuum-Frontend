@@ -1,0 +1,348 @@
+.hero {
+    height: 802px;
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.heroContent {
+    width: 100%;
+    max-width: 672px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.heroTitle {
+    font-weight: 700;
+    font-size: 60px;
+    line-height: 60px;
+    color: #F5F5F5;
+
+}
+
+.heroText {
+    font-weight: 500;
+    font-style: Medium;
+    font-size: 22px;
+    leading-trim: NONE;
+    font-family: var(--font-chivo);
+
+    line-height: 160%;
+    letter-spacing: 0%;
+    vertical-align: middle;
+    color: #F5F5F5;
+
+}
+
+.heroText strong {
+    font-weight: 800;
+    font-size: 20px;
+    leading-trim: NONE;
+    font-family: var(--font-chivo);
+
+    line-height: 160%;
+    letter-spacing: 0%;
+    vertical-align: middle;
+    color: #F5F5F5;
+}
+
+.buttonPrimary {
+    background: var(--color-burgundy);
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 16px;
+    line-height: 24px;
+    letter-spacing: 0%;
+    text-align: center;
+    vertical-align: middle;
+    padding: 13px 36px;
+    color: #FFFFFF;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    outline: none;
+    font-family: var(--font-chivo);
+
+    /* border: 2px solid var(--color-burgundy); */
+    text-transform: capitalize;
+}
+
+.buttonPrimary:hover {
+    background: var(--color-burgundy-hover);
+    /* slightly lighter shade */
+    transform: translateY(-2px);
+    /* lift effect */
+
+
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    /* soft shadow */
+}
+
+.sectionheading {
+    font-weight: 700;
+    font-style: Bold;
+    font-size: 36px;
+    leading-trim: NONE;
+    line-height: 48px;
+    letter-spacing: 0%;
+    text-transform: capitalize;
+    font-family: var(--font-chivo);
+
+    color: var(--color-nearBlack);
+}
+
+.sectionDescription {
+    font-weight: 400;
+    font-size: 16px;
+    leading-trim: NONE;
+    line-height: 22px;
+    letter-spacing: 0%;
+    vertical-align: middle;
+    color: #6A7181;
+    font-family: var(--font-chivo);
+}
+
+.section {
+    padding: 100px 0px;
+}
+
+.ctaBanner {
+    height: 440px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.py70 {
+    padding: 70px 20px;
+}
+
+.maxWidth {
+    max-width: 48rem;
+}
+
+@media (max-width: 1200px) {
+    .section {
+        padding: 96px 0px;
+    }
+
+    .heroTitle {
+        font-size: 48px;
+        line-height: 52px;
+    }
+}
+
+.gridCols {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (max-width: 992px) {
+
+    /* Cards layout */
+    .section {
+        padding: 80px 0px;
+    }
+
+    .heroTitle {
+        font-size: 40px;
+        line-height: 46px;
+    }
+
+    .page :global(.justify-self-end) {
+        justify-self: start;
+    }
+
+    .page :global(img) {
+        max-width: 100%;
+        height: auto;
+    }
+}
+
+@media (max-width: 768px) {
+    .section {
+        padding: 64px 0px;
+    }
+
+    .heroTitle {
+        font-size: 32px;
+        line-height: 38px;
+    }
+
+    .sectionheading {
+        font-size: 28px;
+        line-height: 36px;
+    }
+
+    .py70 {
+        padding: 40px 20px;
+    }
+}
+
+@media (max-width: 576px) {
+    .section {
+        padding: 48px 0px;
+    }
+
+    .heroTitle {
+        font-size: 28px;
+        line-height: 34px;
+    }
+
+    .heroText {
+        font-size: 20px;
+    }
+
+    .buttonPrimary {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .card {
+        padding: 18px;
+    }
+
+    .ctaBanner {
+        height: 570px;
+        padding: 64px 0px;
+    }
+
+    .maxWidth {
+        max-width: 22rem;
+    }
+}
+
+.sectionWrapper {
+    background-color: #f7f7fb;
+    padding: 80px 24px;
+}
+
+.container {
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 72px;
+    align-items: flex-end;
+}
+
+.input {
+    width: 100%;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-size: 14px;
+    outline: none;
+}
+
+.input:focus {
+    border-color: #7c3aed;
+}
+
+.textarea {
+    width: 100%;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 12px 14px;
+    font-size: 14px;
+    height: 120px;
+    resize: none;
+    outline: none;
+}
+
+.textarea:focus {
+    border-color: #7c3aed;
+}
+
+/* RIGHT CARD */
+.infoCard {
+    background-color: #F5F3EF;
+    border-radius: 12px;
+    padding: 36px 40px;
+}
+
+.infoTitle {
+    font-weight: 700;
+    font-size: 20px;
+    line-height: 140%;
+    margin-bottom: 30px;
+    color: #111827;
+    text-align: center;
+}
+
+.infoText {
+    font-size: 14px;
+    font-weight: 400;
+    leading-trim: NONE;
+    line-height: 22.75px;
+    letter-spacing: 0%;
+    vertical-align: middle;
+    color: #6A7181;
+    font-family: var(--font-chivo);
+}
+
+.infoItem .infosemiboldItem {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--color-nearBlack);
+    font-family: var(--font-chivo);
+}
+
+.infoItem .infoRegularItem {
+    font-weight: 400;
+    font-size: 14px;
+    font-family: var(--font-chivo);
+    color: #6A7181;
+}
+
+.infoItem span {
+    font-size: 18px;
+}
+
+@media (max-width: 576px) {
+    .infoTitle {
+        font-size: 16px;
+    }
+
+    .sectionWrapper {
+        padding: 46px 0 70px 0;
+    }
+
+    .card {
+        padding: 0;
+    }
+
+    .py70 {
+        padding: 50px 0;
+    }
+}
+
+@media (max-width: 1207px) {
+    .container {
+        gap: 36px;
+    }
+}
+
+@media (max-width: 768px) {
+    .container {
+        display: block;
+    }
+
+    .infoCard {
+        padding: 27px 13px;
+    }
+}
+
+@media (max-width: 560px) {
+    .gridCols {
+        grid-template-columns: repeat(1, minmax(0, 1fr));
+    }
+}
+
+
+.phoneInput:input-focus {
+    border-color: rgba(109,40,217,0.12) !important;
+    --tw-ring-offset-width: 0px !important;
+    --tw-ring-color: rgba(109,40,217,0.12) !important;
+    box-shadow: 0 0 0 0 var(--tw-ring-offset-color), 0 0 0 1px var(--tw-ring-color), 0 0 #ffd9d900 !important;
+}
