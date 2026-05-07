@@ -44,7 +44,7 @@ type CohortDetail = {
   name: string;
   description: string;
   startDate: string;
-  price: number;
+  price: string;
   seatsFilled: number;
   seatLimit: number;
   status: CohortStatus;
@@ -169,7 +169,7 @@ function normalizeCohort(payload: unknown): CohortDetail | null {
     name: String(raw.name ?? raw.title ?? raw.cohortName ?? "Untitled Cohort"),
     description: String(raw.description ?? raw.overview ?? "No description available."),
     startDate: String(raw.startDate ?? raw.start_date ?? "-"),
-    price: Number(raw.price ?? raw.amount ?? 0),
+    price: String(raw.price ?? raw.amount ?? 0),
     seatsFilled: Number(raw.seatsFilled ?? raw.seats_filled ?? raw.filledSeats ?? 0),
     seatLimit: Number(raw.seatLimit ?? raw.seat_limit ?? raw.totalSeats ?? 0),
     status: normalizeStatus(raw.status),
@@ -803,7 +803,7 @@ export default function CohortDetailClient() {
 
               <article className="admin-card admin-info-card">
                 <h3 className="admin-section-title">Pricing</h3>
-                <p className="admin-info-card__price !mb-3 !mt-3">{formatCurrency(cohort?.price ?? 0)}</p>
+                <p className="admin-info-card__price !mb-3 !mt-3">{cohort?.price ?? 0}</p>
                 <p className="admin-info-card__text">per participant</p>
               </article>
 
