@@ -30,7 +30,7 @@ type ParticipantRow = {
   role: string;
   program:string;
   cohort: string;
-  payment: "Paid" | "Failed" | "Refunded" | "Incomplete" | "Pending";
+  payment: "Paid" | "Failed" | "Refunded" | "Pending";
   registration: "Complete" | "Incomplete";
   active: boolean;
   initials?: string;
@@ -100,7 +100,7 @@ function normalizeParticipantStatus(value: unknown) {
 
   if (normalized === "paid") return "Paid";
   if (normalized === "refunded") return "Refunded";
-  if (normalized === "complete") return "Complete";
+  if (normalized === "pending") return "Pending";
   return normalized === "failed" ? "Failed" : "Incomplete";
 }
 
@@ -481,7 +481,7 @@ function ViewParticipantModal({
                   ? "#2BAB6F"
                   : participant?.payment === "Refunded"
                     ? "#D9AC26"
-                    : participant?.payment === "Incomplete"
+                    : participant?.payment === "Pending"
                       ? "#F48C25"
                       : "#DC2828"
               }
@@ -628,7 +628,7 @@ export default function ParticipantsPage() {
       const response = await getAdminParticipants(params);
 
       const normalized = normalizeParticipantsResponse(response);
-
+ console.log("normalizednormalizednormalizednormalized",normalized)
       setParticipants(normalized.items);
       setParticipantsPagination(normalized.pagination);
     } catch (error) {
@@ -664,8 +664,8 @@ export default function ParticipantsPage() {
         className: "admin-table-col-name",
         render: (row) => {
           const fullName = row?.name?.trim() || "";
-
-          // Split name safely
+ 
+          // Split name  safely
           const nameParts = fullName.split(" ").filter(Boolean);
 
           // Generate initials (max 2 letters)
@@ -729,7 +729,7 @@ export default function ParticipantsPage() {
                 ? "#2BAB6F"
                 : row.payment === "Refunded"
                   ? "#D9AC26"
-                  : row.payment === "Incomplete"
+                  : row.payment === "Pending"
                     ? "#F48C25"
                     : "#DC2828"
             }

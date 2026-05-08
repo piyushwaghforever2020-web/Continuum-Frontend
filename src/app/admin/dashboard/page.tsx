@@ -40,7 +40,7 @@ type ParticipantRow = {
   phone: string;
   company: string;
   cohort: string;
-  payment: "Paid" | "Failed" | "Refunded" | "Incomplete";
+  payment: "Paid" | "Failed" | "Refunded" | "Pending";
   registration: "Complete" | "Incomplete";
   active: boolean;
 };
@@ -62,7 +62,7 @@ function normalizeParticipantStatus(value: unknown) {
 
   if (normalized === "paid") return "Paid";
   if (normalized === "refunded") return "Refunded";
-  if (normalized === "complete") return "Complete";
+  if (normalized === "pending") return "Pending";
   return normalized === "failed" ? "Failed" : "Incomplete";
 }
 
@@ -441,7 +441,7 @@ export default function DashboardPage() {
                 ? "#2BAB6F"
                 : row.payment === "Refunded"
                   ? "#D9AC26"
-                  : row.payment === "Incomplete"
+                  : row.payment === "Pending"
                     ? "#F48C25"
                     : "#DC2828"
             }
