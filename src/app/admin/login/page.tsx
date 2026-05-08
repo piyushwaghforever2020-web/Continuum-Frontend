@@ -55,8 +55,6 @@ export default function AdminLogin() {
     try {
       await handleLogin(form.email, form.password);
 
-      // Navigate without full page reload.
-      router.replace("/admin/dashboard");
     } catch (err) {
       // handled in hook
     }

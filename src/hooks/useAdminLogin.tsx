@@ -22,7 +22,7 @@ export const useAdminLogin = () => {
 
       return res;
     } catch (err: any) {
-      setError(err.message);
+      setError(err?.response?.data?.message);
       throw err;
     } finally {
       setLoading(false);
