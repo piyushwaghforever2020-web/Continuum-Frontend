@@ -114,8 +114,7 @@ export default function DownloadCalenderPage() {
 
                 <p className="max-w-[650px] text-[16px] leading-[1.7] text-[#6A7181]">
                   Enter your password below to verify access and download the
-                  PDF calendar. The same secured download flow remains available
-                  anywhere the cohort calendar modal appears.
+                  PDF calendar.
                 </p>
 
                 <div className="grid gap-4 sm:grid-cols-2">
