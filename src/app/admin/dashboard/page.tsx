@@ -40,7 +40,7 @@ type ParticipantRow = {
   phone: string;
   company: string;
   cohort: string;
-  payment: "Paid" | "Failed" | "Refunded" | "Pending";
+  payment: "Paid" | "Failed" | "Refunded" | "Incomplete" | "Pending";
   registration: "Complete" | "Incomplete";
   active: boolean;
 };
@@ -56,6 +56,13 @@ type CohortOption = {
   id: string;
   name: string;
 };
+function normalizeParticipantStatusRegister(value: unknown) {
+  const normalized = String(value ?? "").toLowerCase();
+
+  if (normalized === "complete") return "Complete";
+  if (normalized === "incomplete") return "Incomplete";
+  return normalized === "failed" ? "Failed" : "Incomplete";
+}
 
 function normalizeParticipantStatus(value: unknown) {
   const normalized = String(value ?? "").toLowerCase();
@@ -87,7 +94,7 @@ function normalizeParticipantsResponse(payload: unknown) {
         payment: normalizeParticipantStatus(
           item.payment_status
         ) as ParticipantRow["payment"],
-        registration: normalizeParticipantStatus(
+        registration: normalizeParticipantStatusRegister(
           item.registration_status
         ) as ParticipantRow["registration"],
         active:

@@ -94,6 +94,15 @@ type ParticipantsFiltersProps = {
   isExporting: boolean;
 };
 
+function normalizeParticipantStatusRegister(value: unknown) {
+  const normalized = String(value ?? "").toLowerCase();
+
+  if (normalized === "complete") return "Complete";
+  if (normalized === "incomplete") return "Incomplete";
+  if (normalized === "pending") return "Pending";
+  return normalized === "failed" ? "Failed" : "Incomplete";
+}
+
 
 function normalizeParticipantStatus(value: unknown) {
   const normalized = String(value ?? "").toLowerCase();
@@ -156,7 +165,7 @@ function normalizeParticipantsResponse(payload: unknown) {
         program: String((item.program as Record<string, unknown>)?.name ?? "-"),
         cohort: String(cohort.name ?? "-"),
         payment: normalizeParticipantStatus(item.payment_status) as ParticipantRow["payment"],
-        registration: normalizeParticipantStatus(item.registration_status) as ParticipantRow["registration"],
+        registration: normalizeParticipantStatusRegister(item.registration_status) as ParticipantRow["registration"],
         active: item.is_active !== undefined ? Boolean(item.is_active) : String(item.registration_status ?? "").toLowerCase() === "complete",
         title: String(item.role ?? ""),
         answers: normalizeParticipantAnswers(item.answers),
@@ -628,7 +637,6 @@ export default function ParticipantsPage() {
       const response = await getAdminParticipants(params);
 
       const normalized = normalizeParticipantsResponse(response);
- console.log("normalizednormalizednormalizednormalized",normalized)
       setParticipants(normalized.items);
       setParticipantsPagination(normalized.pagination);
     } catch (error) {
