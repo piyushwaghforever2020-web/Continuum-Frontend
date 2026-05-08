@@ -1595,7 +1595,7 @@
   width: 5.5rem;
   height: 5.5rem;
   background: var(--color-warmCreamy);
-  color: var(--color-burgundy);
+  color: var(--color-deepGold);
   font-size: 34px;
   font-weight: 700;
 }
@@ -1612,7 +1612,7 @@
   max-height: 30%;
   height: auto;
   background: var(--color-warmCreamy);
-  color: var(--color-burgundy);
+  color: var(--color-deepGold);
   font-size: 34px;
   font-weight: 700;
 }
