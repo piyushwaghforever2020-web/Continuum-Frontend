@@ -176,8 +176,11 @@ export default function EnrollmentModal({
         email: form?.email,
         cohort_id: form?.cohortId,
         program_id: form?.programId,
-        success_url: "http://coutinuum.codingserver.com/success-payment/",
-        cancel_url: "http://coutinuum.codingserver.com/registration/",
+        // success_url: "http://coutinuum.codingserver.com/success-payment/",
+        // cancel_url: "http://coutinuum.codingserver.com/registration/",
+        success_url : `${process.env.NEXT_PUBLIC_STRIPE_URL}success-payment/`,
+        cancel_url : `${process.env.NEXT_PUBLIC_STRIPE_URL}registration/`,
+
       };
 
       const response = await axios.post(
