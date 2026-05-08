@@ -54,6 +54,7 @@ export default function AdminLogin() {
 
     try {
       await handleLogin(form.email, form.password);
+      router.replace("/admin/dashboard");
 
     } catch (err) {
       // handled in hook
