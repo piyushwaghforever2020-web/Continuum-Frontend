@@ -243,7 +243,7 @@ function CreateCohortModal({
 
 export default function CohortsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [mode, setMode] = useState<"create" | "edit">("create");
+  const [mode] = useState<"create" | "edit">("create");
   const [form, setForm] = useState<CohortFormData>(initialForm);
   const [formErrors, setFormErrors] = useState<CohortFormErrors>({});
   const [submitError, setSubmitError] = useState("");
@@ -317,9 +317,7 @@ export default function CohortsPage() {
   };
 
   const openCreateModal = () => {
-    setMode("create");
-    resetModalState();
-    setIsModalOpen(true);
+    window.location.assign("/admin/cohorts/create");
   };
 
   const handleFormChange = (field: keyof CohortFormData, value: string) => {
@@ -470,15 +468,17 @@ export default function CohortsPage() {
               <div>
                 <h2 className="admin-page-title">Cohorts</h2>
               </div>
-
-              {/* <button
+           
+              <button
                 type="button"
                 className="admin-table-button admin-table-button--primary"
-                onClick={openCreateModal}
+                // onClick={openCreateModal}
               >
-                <FiPlus size={14} />
-                <span>Create Cohort</span>
-              </button> */}
+                <Link href="/admin/cohorts/create" className="flex gap-2">
+                  <FiPlus size={14} />
+                  <span>Create Cohort</span>
+                </Link>
+              </button> 
             </section>
 
             <AdminTable

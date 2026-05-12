@@ -1,0 +1,575 @@
+"use client";
+
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import type { FormEvent } from "react";
+import { useState } from "react";
+import { FiArrowLeft, FiPlus, FiTrash2 } from "react-icons/fi";
+import AdminHeader from "@/components/AdminHeader";
+import Sidebar from "@/components/Sidebar";
+import { AdminToggle } from "@/components/admin/AdminTable";
+import { createAdminCohort } from "@/services/admin.services";
+
+type InvestmentRow = {
+  titleName: string;
+  price: string;
+  whatYouGet: string;
+};
+
+type TextRow = {
+  value: string;
+};
+
+type ProgramRow = {
+  programId: string;
+  programName: string;
+  programDescription: string;
+};
+
+type EditCohortForm = {
+  cohortTitle: string;
+  cohortDescription: string;
+  hasMultiProgram: boolean;
+  startDate: string;
+  endDate: string;
+  liveSessions: string;
+  workshop: string;
+  cohortSize: string;
+  refundPolicy: string;
+  investments: InvestmentRow[];
+  leaveWith: TextRow[];
+  ctaDescription: string;
+  price: string;
+  programs: ProgramRow[];
+};
+
+const emptyInvestmentRow: InvestmentRow = {
+  titleName: "",
+  price: "",
+  whatYouGet: "",
+};
+
+const emptyTextRow: TextRow = {
+  value: "",
+};
+
+const emptyProgramRow: ProgramRow = {
+  programId: "",
+  programName: "",
+  programDescription: "",
+};
+
+const initialForm: EditCohortForm = {
+  cohortTitle: "",
+  cohortDescription: "",
+  hasMultiProgram: false,
+  startDate: "",
+  endDate: "",
+  liveSessions: "",
+  workshop: "",
+  cohortSize: "",
+  refundPolicy: "",
+  investments: [{ ...emptyInvestmentRow }],
+  leaveWith: [{ ...emptyTextRow }],
+  ctaDescription: "",
+  price: "",
+  programs: [{ ...emptyProgramRow }],
+};
+
+function parseNumberOrText(value: string) {
+  const trimmed = value.trim();
+  const numeric = Number(trimmed.replace(/[$,\sA-Za-z]/g, ""));
+
+  return trimmed && Number.isFinite(numeric) ? numeric : trimmed;
+}
+
+function digitsOnly(value: string) {
+  return value.replace(/\D/g, "");
+}
+
+export default function CreateCohortClient() {
+  const router = useRouter();
+  const [form, setForm] = useState<EditCohortForm>(initialForm);
+  const [isLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  const [submitMessage, setSubmitMessage] = useState("");
+
+  const updateField = (field: keyof EditCohortForm, value: string) => {
+    setForm((current) => ({ ...current, [field]: value }));
+    setSubmitMessage("");
+  };
+
+  const updateHasMultiProgram = (value: boolean) => {
+    setForm((current) => ({ ...current, hasMultiProgram: value }));
+    setSubmitMessage("");
+  };
+
+  const updateInvestment = (
+    index: number,
+    field: keyof InvestmentRow,
+    value: string
+  ) => {
+    setForm((current) => ({
+      ...current,
+      investments: current.investments.map((row, rowIndex) =>
+        rowIndex === index ? { ...row, [field]: value } : row
+      ),
+    }));
+    setSubmitMessage("");
+  };
+
+  const updateLeaveWith = (index: number, value: string) => {
+    setForm((current) => ({
+      ...current,
+      leaveWith: current.leaveWith.map((row, rowIndex) =>
+        rowIndex === index ? { value } : row
+      ),
+    }));
+    setSubmitMessage("");
+  };
+
+  const updateProgram = (
+    index: number,
+    field: keyof ProgramRow,
+    value: string
+  ) => {
+    setForm((current) => ({
+      ...current,
+      programs: current.programs.map((row, rowIndex) =>
+        rowIndex === index ? { ...row, [field]: value } : row
+      ),
+    }));
+    setSubmitMessage("");
+  };
+
+  const addInvestment = () => {
+    setForm((current) => ({
+      ...current,
+      investments: [...current.investments, { ...emptyInvestmentRow }],
+    }));
+  };
+
+  const removeInvestment = (index: number) => {
+    setForm((current) => ({
+      ...current,
+      investments:
+        current.investments.length === 1
+          ? [{ ...emptyInvestmentRow }]
+          : current.investments.filter((_, rowIndex) => rowIndex !== index),
+    }));
+  };
+
+  const addLeaveWith = () => {
+    setForm((current) => ({
+      ...current,
+      leaveWith: [...current.leaveWith, { ...emptyTextRow }],
+    }));
+  };
+
+  const removeLeaveWith = (index: number) => {
+    setForm((current) => ({
+      ...current,
+      leaveWith:
+        current.leaveWith.length === 1
+          ? [{ ...emptyTextRow }]
+          : current.leaveWith.filter((_, rowIndex) => rowIndex !== index),
+    }));
+  };
+
+  const addProgram = () => {
+    setForm((current) => ({
+      ...current,
+      programs: [...current.programs, { ...emptyProgramRow }],
+    }));
+  };
+
+  const removeProgram = (index: number) => {
+    setForm((current) => ({
+      ...current,
+      programs:
+        current.programs.length === 1
+          ? [{ ...emptyProgramRow }]
+          : current.programs.filter((_, rowIndex) => rowIndex !== index),
+    }));
+  };
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    try {
+      setIsSubmitting(true);
+      setError("");
+      setSubmitMessage("");
+
+      const payload: Record<string, unknown> = {
+        name: form.cohortTitle.trim(),
+        description: form.cohortDescription.trim(),
+        start_date: form.startDate,
+        end_date: form.endDate,
+        price: form.price,
+        seat_limit: parseNumberOrText(form.cohortSize),
+        refund_policy: form.refundPolicy.trim(),
+        leave_with: form.leaveWith
+          .map((row) => row.value.trim())
+          .filter(Boolean),
+        live_sessions_text: form.liveSessions.trim(),
+        workshops_text: form.workshop.trim(),
+        cohort_size_text: form.cohortSize.trim(),
+        investment_tiers: form.investments.map((row) => ({
+          tier: row.titleName.trim(),
+          price: row.price,
+          best_for: row.whatYouGet.trim(),
+        })),
+        scarcity_text: form.ctaDescription.trim(),
+        display_price: form.price,
+        has_multi_program: form.hasMultiProgram,
+      };
+
+      if (form.hasMultiProgram) {
+        payload.programs = form.programs
+          .map((row) => ({
+             ...(
+    row.programId
+      ? { program_id: parseNumberOrText(row.programId) }
+      : {}
+  ),
+            program_name: row.programName.trim(),
+            program_description: row.programDescription.trim(),
+          }))
+          .filter((row) => row.program_id || row.program_name || row.program_description);
+      }
+
+      await createAdminCohort(payload);
+      router.replace("/admin/cohorts");
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to create cohort.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="admin-page">
+      <Sidebar />
+
+      <div className="admin-main">
+        <AdminHeader title="Create Cohort" eyebrow="Admin Panel" />
+
+        <main className="admin-content">
+          <form className="admin-edit-cohort" onSubmit={handleSubmit}>
+            <div className="admin-edit-cohort__topbar">
+              <Link href="/admin/cohorts" className="admin-back-link">
+                <FiArrowLeft size={22} />
+              </Link>
+              <h2 className="admin-page-title">Create Cohort</h2>
+            </div>
+
+            {error ? <p className="admin-form-submit-error">{error}</p> : null}
+            {submitMessage ? (
+              <p className="admin-form-submit-success">{submitMessage}</p>
+            ) : null}
+
+            <section className="admin-edit-section">
+              <h3 className="admin-edit-section__title">Cohort Details</h3>
+              <hr />
+              <div className="flex flex-col mt-3 gap-[20px]">
+
+              <label className="admin-form-field">
+                <span>Cohort Title </span>
+                <input
+                  value={form.cohortTitle}
+                  disabled={isLoading}
+                  onChange={(event) =>
+                    updateField("cohortTitle", event.target.value)
+                  }
+                  />
+              </label>
+              <label className="admin-form-field">
+                <span>Cohort Description</span>
+                <textarea
+                  rows={3}
+                  value={form.cohortDescription}
+                  disabled={isLoading}
+                  onChange={(event) =>
+                    updateField("cohortDescription", event.target.value)
+                  }
+                  />
+              </label>
+                  </div>
+            </section>
+
+            <section className="admin-edit-section">
+              <h3 className="admin-edit-section__title">Schedule</h3>
+              <hr />
+              <div className="admin-edit-grid admin-edit-grid--two mt-3">
+                <label className="admin-form-field">
+                  <span>Start date </span>
+                  <input
+                    type="date"
+                    value={form.startDate}
+                    disabled={isLoading}
+                    onChange={(event) =>
+                      updateField("startDate", event.target.value)
+                    }
+                  />
+                </label>
+                <label className="admin-form-field">
+                  <span>End date </span>
+                  <input
+                    type="date"
+                    value={form.endDate}
+                    disabled={isLoading}
+                    onChange={(event) =>
+                      updateField("endDate", event.target.value)
+                    }
+                  />
+                </label>
+                <label className="admin-form-field">
+                  <span>Live sessions</span>
+                  <input
+                    value={form.liveSessions}
+                    disabled={isLoading}
+                    onChange={(event) =>
+                      updateField("liveSessions", event.target.value)
+                    }
+                  />
+                </label>
+                <label className="admin-form-field">
+                  <span>Workshop</span>
+                  <input
+                    value={form.workshop}
+                    disabled={isLoading}
+                    onChange={(event) =>
+                      updateField("workshop", event.target.value)
+                    }
+                  />
+                </label>
+                 <label className="admin-form-field ">
+                <span>Seat limit</span>
+                <input
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  value={form.cohortSize}
+                  disabled={isLoading}
+                  onChange={(event) =>
+                    updateField("cohortSize", digitsOnly(event.target.value))
+                  }
+                />
+              </label>
+              <label className="admin-form-field">
+                <span>Refund Policy</span>
+                 <input
+                  value={form.refundPolicy}
+                  disabled={isLoading}
+                  onChange={(event) =>
+                    updateField("refundPolicy", event.target.value)
+                  }
+                />
+              </label>
+              </div>
+             
+            </section>
+
+            <section className="admin-edit-section">
+              <div className="admin-edit-section__heading-row">
+                <h3 className="admin-edit-section__title">Investment Table</h3>
+                <button type="button" className="admin-mini-button" onClick={addInvestment}>
+                  <FiPlus size={12} />
+                  <span>Add row</span>
+                </button>
+              </div>
+              <hr />
+              <div className="admin-edit-table admin-edit-table--investment">
+                <div className="admin-edit-table__head">
+                  <span>#</span>
+                  <span>Tier Name</span>
+                  <span>Price</span>
+                  <span>Best For Description</span>
+                  <span />
+                </div>
+                {form.investments.map((row, index) => (
+                  <div className="admin-edit-table__row" key={`investment-${index}`}>
+                    <span className="admin-edit-table__index">{index + 1}</span>
+                    <input
+                      value={row.titleName}
+                      disabled={isLoading}
+                      onChange={(event) =>
+                        updateInvestment(index, "titleName", event.target.value)
+                      }
+                    />
+                    <div className="admin-money-input admin-money-input--table" style={{ display: "flex" }}>
+                      <input
+                        inputMode="text"
+                        value={row.price}
+                        disabled={isLoading}
+                        aria-label="Investment price"
+                        placeholder="$1,400–$1,500"
+                        onChange={(event) =>
+                          updateInvestment(index, "price", event.target.value)
+                        }
+                      />
+                    </div>
+                    <input
+                      value={row.whatYouGet}
+                      disabled={isLoading}
+                      onChange={(event) =>
+                        updateInvestment(index, "whatYouGet", event.target.value)
+                      }
+                    />
+                    <button
+                      type="button"
+                      className="admin-icon-button admin-edit-table__delete"
+                      aria-label="Delete investment row"
+                      onClick={() => removeInvestment(index)}
+                    >
+                      <FiTrash2 size={13} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            <section className="admin-edit-section">
+              <div className="admin-edit-section__heading-row">
+                <h3 className="admin-edit-section__title">What You Leave With</h3>
+                <button type="button" className="admin-mini-button" onClick={addLeaveWith}>
+                  <FiPlus size={12} />
+                  <span>Add row</span>
+                </button>
+              </div>
+              <hr />
+              <div className="admin-edit-repeat-list mt-4">
+                {form.leaveWith.map((row, index) => (
+                  <div className="admin-edit-repeat-list__row" key={`leave-with-${index}`}>
+                    <span>{index + 1}</span>
+                    <input
+                      value={row.value}
+                      disabled={isLoading}
+                      onChange={(event) => updateLeaveWith(index, event.target.value)}
+                    />
+                    <button
+                      type="button"
+                      className="admin-icon-button admin-edit-table__delete"
+                      aria-label="Delete leave-with row"
+                      onClick={() => removeLeaveWith(index)}
+                    >
+                      <FiTrash2 size={13} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            <section className="admin-edit-section">
+              <h3 className="admin-edit-section__title">Pricing/CTA Panel</h3>
+              <hr />
+              <div className="mt-3 flex flex-col gap-[20px]">
+
+              <label className="admin-form-field">
+                <span>Description</span>
+                <textarea
+                  rows={3}
+                  value={form.ctaDescription}
+                  disabled={isLoading}
+                  onChange={(event) =>
+                    updateField("ctaDescription", event.target.value)
+                  }
+                />
+              </label>
+              <div className="admin-edit-grid admin-edit-grid--compact">
+                <label className="admin-form-field">
+                  <span>Price </span>
+                  <div className="admin-money-input" style={{ display: "flex" }}>
+                    <input
+                      inputMode="text"
+                      value={form.price}
+                      disabled={isLoading}
+                      aria-label="Price"
+                      placeholder="$1,400–$1,500"
+                      onChange={(event) => updateField("price", event.target.value
+                      )}
+                    />
+                  </div>
+                </label>
+              </div>
+              </div>
+
+            </section>
+
+            <section className="admin-edit-section">
+              <div className={`${form.hasMultiProgram ? "" : "!mb-0 "} admin-edit-section__heading-row`}>
+                <h3 className={` ${form.hasMultiProgram ? "" : "!mb-0 "} admin-edit-section__title`}>Add Programs</h3>
+                <AdminToggle
+                  checked={form.hasMultiProgram}
+                  disabled={isSubmitting}
+                  onChange={updateHasMultiProgram}
+                  ariaLabel="Toggle programs for this cohort"
+                />
+              </div>
+            </section>
+
+            {form.hasMultiProgram ? (
+              <section className="admin-edit-section">
+                <div className="admin-edit-section__heading-row">
+                  <h3 className="admin-edit-section__title">Programs</h3>
+                  <button type="button" className="admin-mini-button" onClick={addProgram}>
+                    <FiPlus size={12} />
+                    <span>Add row</span>
+                  </button>
+                </div>
+                <hr />
+                <div className="admin-edit-table admin-edit-table--program">
+                  <div className="admin-edit-table__head">
+                    <span>#</span>
+                    <span>Program Name</span>
+                    <span>Program Description</span>
+                    <span />
+                  </div>
+                  {form.programs.map((row, index) => (
+                    <div className="admin-edit-table__row" key={`program-${index}`}>
+                      <span className="admin-edit-table__index">{index + 1}</span>
+                      <input
+                        value={row.programName}
+                        disabled={isLoading}
+                        onChange={(event) =>
+                          updateProgram(index, "programName", event.target.value)
+                        }
+                      />
+                      <input
+                        value={row.programDescription}
+                        disabled={isLoading}
+                        onChange={(event) =>
+                          updateProgram(index, "programDescription", event.target.value)
+                        }
+                      />
+                      <button
+                        type="button"
+                        className="admin-icon-button admin-edit-table__delete"
+                        aria-label="Delete program row"
+                        onClick={() => removeProgram(index)}
+                      >
+                        <FiTrash2 size={13} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            ) : null}
+
+            <div className="admin-edit-cohort__actions">
+              <button
+                type="submit"
+                className="admin-modal__button text-[var(--color-warmCreamy)] bg-[var(--color-burgundy)]"
+                disabled={isLoading || isSubmitting}
+              >
+                {isSubmitting ? "Submitting..." : "Submit"}
+              </button>
+            </div>
+          </form>
+        </main>
+      </div>
+    </div>
+  );
+}
