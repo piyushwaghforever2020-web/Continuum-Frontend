@@ -33,7 +33,7 @@ export default function Cohort() {
       <main>
 
         <section
-          className={`${styles.ctaBanner} bg-[url('/cohort/cohort-small.png')] md:bg-[url('/cohort/cohort.png')]`}
+          className={`${styles.ctaBanner} bg-[url('/cohort/cohort-small.png')] md:bg-[url('/cohort/cohort.webp')]`}
           style={{
             // backgroundImage: "url(/aboutImages/bg-about.png)",
             backgroundRepeat: "no-repeat",
@@ -110,7 +110,7 @@ export default function Cohort() {
               {/* RIGHT */}
               <div>
                 <img
-                  src="/cohort/cohort-image.png"
+                  src="/cohort/cohort-image.webp"
                   alt="session"
                   className={styles.image}
                 />
@@ -395,7 +395,7 @@ export default function Cohort() {
         <section
           className={styles.ctaBanner}
           style={{
-            backgroundImage: "url(/sponsorshipImages/cohort-ready-bg.png)",
+            backgroundImage: "url(/sponsorshipImages/cohort-ready-bg.webp)",
             backgroundRepeat: "no-repeat",
             backgroundPosition: "center",
             backgroundSize: "cover",

@@ -29,7 +29,7 @@ const paths = [
             "Welcome to the Transformation Studio—a space where women of color…can turn that type of pressure into strategic advantage.",
         cta: "Coming soon",
         href: "/enterprise",
-        image: "/studioImages/tes-studio.png",
+        image: "/studioImages/tes-studio.webp",
     },
     {
         title: "Lead the Data Narrative",
@@ -37,7 +37,7 @@ const paths = [
             "You can absolutely own the data and AI story…even if you’ve never managed a data team a day in your life.",
         cta: "Coming soon",
         href: "/lab",
-        image: "/studioImages/ts-podcast02.png",
+        image: "/studioImages/ts-podcast02.webp",
     },
     {
         title: "Outgrowing the Box",
@@ -45,7 +45,7 @@ const paths = [
             "When You’re Too Big for Your Role.",
         cta: "Coming soon",
         href: "/studio",
-        image: "/studioImages/ts-podcast.png",
+        image: "/studioImages/ts-podcast.webp",
     },
 ];
 
@@ -76,7 +76,7 @@ export default function TransformationStudioPage() {
   {/* Desktop Background */}
   <div className="absolute inset-0 hidden md:block">
     <Image
-      src="/studioImages/transformation-studio04.png"
+      src="/studioImages/transformation-studio04.webp"
       alt="Transformation Studio Banner"
       fill
       priority
@@ -362,7 +362,7 @@ export default function TransformationStudioPage() {
 
                             <Image
                                 className="justify-self-end "
-                                src="/studioImages/speakingSession.png"
+                                src="/studioImages/speakingSession.webp"
                                 alt="Enterprise leaders in a meeting"
                                 width={700}
                                 height={600}
@@ -375,7 +375,7 @@ export default function TransformationStudioPage() {
                 <section
                     className={styles.ctaBanner}
                     style={{
-                        backgroundImage: "url(/studioImages/bg-studio.png)",
+                        backgroundImage: "url(/studioImages/bg-studio.webp)",
                         backgroundRepeat: "no-repeat",
                         backgroundPosition: "center",
                         backgroundSize: "cover",
