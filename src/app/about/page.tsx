@@ -32,7 +32,7 @@ export default function AboutPage() {
   {/* Background Image */}
   <div className="absolute inset-0">
     <Image
-      src="/aboutImages/bg-about.png"
+      src="/aboutImages/bg-about.webp"
       alt="About Background"
       fill
       priority
@@ -67,7 +67,7 @@ export default function AboutPage() {
                             <Image
                                 className=" justify-self-center lg:justify-self-start shadow-lisa "
 
-                                src="/aboutImages/Lisa.png"
+                                src="/aboutImages/Lisa.webp"
                                 alt="Enterprise leaders in a meeting"
                                 width={600}
                                 height={622}

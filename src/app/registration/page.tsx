@@ -327,7 +327,7 @@ export default function RegistrationPage() {
   {/* Background Image */}
   <div className="absolute inset-0">
     <Image
-      src="/enterprise/pricingherobg.png"
+      src="/enterprise/pricingherobg.webp"
       alt="Pricing Hero Banner"
       fill
       priority
@@ -869,7 +869,7 @@ export default function RegistrationPage() {
         <section
           className={styles.ctaBanner}
           style={{
-            backgroundImage: "url(/enterprise/pricinfCTAbanner.png)",
+            backgroundImage: "url(/enterprise/pricinfCTAbanner.webp)",
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             backgroundRepeat: 'no-repeat',

@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Image from "next/image";
 import { Inter } from 'next/font/google';
 
 const inter = Inter({
@@ -30,7 +29,7 @@ export default function TransformationLab() {
       <div
         className="absolute inset-0 w-full h-full"
         style={{
-          backgroundImage: `url('/images/transformationLab.png')`,
+          backgroundImage: `url('/images/transformationLab.webp')`,
           backgroundRepeat: "no-repeat",
           backgroundPosition: "center",
           backgroundSize: "cover",

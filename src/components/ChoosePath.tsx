@@ -15,7 +15,7 @@ const paths = [
       "A dedicated senior partner to stabilize complex change, align stakeholders, and turn strategy into traction in the rooms that matter.",
     cta: "Explore Enterprise Transformation",
     href: "/enterprise",
-    image: "/images/card_1.png",
+    image: "/images/card_1.webp",
   },
   {
     tag: "For WOC Leaders",
@@ -24,7 +24,7 @@ const paths = [
       "A leadership lab built for women of color navigating enterprise power, politics, and visibility while delivering transformation outcomes.",
     cta: "Explore the Transformation Lab",
     href: "/transformlab",
-    image: "/images/choosePath2.png",
+    image: "/images/choosePath2.webp",
   },
   {
     tag: "Podcast & Resources",
@@ -33,7 +33,7 @@ const paths = [
       "Stories, frameworks, and candid conversations from inside real transformation journeys.",
     cta: "Visit the Transformation Studio",
     href: "/transformation-studio",
-    image: "/images/card_2.png",
+    image: "/images/card_2.webp",
   },
 ];
 

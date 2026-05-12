@@ -29,7 +29,7 @@ export default function About() {
       <div
         className="absolute inset-0 opacity-[0.75] w-full h-full"
         style={{
-          backgroundImage: `url('/images/aboutBgImg.png')`,
+          backgroundImage: `url('/images/aboutBgImg.webp')`,
           backgroundRepeat: "no-repeat",
           backgroundPosition: "center",
           top: 0,

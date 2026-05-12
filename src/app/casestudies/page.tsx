@@ -137,7 +137,7 @@ export default function RegistrationPage() {
   {/* Background Image */}
   <div className="absolute inset-0">
     <Image
-      src="/enterprise/studiesherobg.png"
+      src="/enterprise/studiesherobg.webp"
       alt="Studies Hero Background"
       fill
       priority
