@@ -102,7 +102,7 @@ export default function ContactPage() {
   {/* Desktop Background */}
   <div className="absolute inset-0 hidden md:block">
     <Image
-      src="/talkWithUs/talkWithUs.png"
+      src="/talkWithUs/talkWithUs.webp"
       alt="Talk With Us Background"
       fill
       priority
