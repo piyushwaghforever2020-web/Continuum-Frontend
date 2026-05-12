@@ -78,17 +78,32 @@ export default function TransformationStudioPage() {
         <div className={styles.page}>
             <Header />
             <main>
-                <section
-                    className={`${styles.hero}  bg-[url('/sponsorshipImages/sponsor-mobile.png')] md:bg-[url('/sponsorshipImages/sponsor-bg.png')]`}
+               <section className={`${styles.hero} relative overflow-hidden`}>
 
-                // style={{
-                //     backgroundImage: "url(/sponsorshipImages/sponsor-bg.png)",
-                //     backgroundRepeat: "no-repeat",
-                //     backgroundPosition: "center",
-                //     backgroundSize: "cover",
-                // }}
-                >
-                    <div className="container-width w-full">
+  {/* Mobile Background */}
+  <div className="absolute inset-0 block md:hidden">
+    <Image
+      src="/sponsorshipImages/sponsor-mobile.png"
+      alt="Sponsor Banner"
+      fill
+      priority
+      className="object-cover object-center"
+    />
+  </div>
+
+  {/* Desktop Background */}
+  <div className="absolute inset-0 hidden md:block">
+    <Image
+      src="/sponsorshipImages/sponsor-bg.png"
+      alt="Sponsor Banner"
+      fill
+      priority
+      className="object-cover object-center"
+    />
+  </div>
+
+  {/* Content */}
+  <div className="relative z-10 container-width w-full">
                         <div className={styles.heroContent}>
                             <h1 className={`${styles.heroTitle}`}>
                                 Invest in the WOC Leaders Who Are Already Doing the Work

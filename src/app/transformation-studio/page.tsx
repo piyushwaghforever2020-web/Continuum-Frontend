@@ -60,16 +60,32 @@ export default function TransformationStudioPage() {
         <div className={styles.page}>
             <Header />
             <main>
-                <section
-                    className={`${styles.hero} bg-[url('/studioImages/transformation-mobile.png')] md:bg-[url('/studioImages/transformation-studio04.png')]`}
-                // style={{
-                //     backgroundImage: "url(/studioImages/transformation-studio04.png)",
-                //     backgroundRepeat: "no-repeat",
-                //     backgroundPosition: "center",
-                //     backgroundSize: "cover",
-                // }}
-                >
-                    <div className="container-width w-full">
+               <section className={`${styles.hero} relative overflow-hidden`}>
+
+  {/* Mobile Background */}
+  <div className="absolute inset-0 block md:hidden">
+    <Image
+      src="/studioImages/transformation-mobile.png"
+      alt="Transformation Studio Banner"
+      fill
+      priority
+      className="object-cover object-center"
+    />
+  </div>
+
+  {/* Desktop Background */}
+  <div className="absolute inset-0 hidden md:block">
+    <Image
+      src="/studioImages/transformation-studio04.png"
+      alt="Transformation Studio Banner"
+      fill
+      priority
+      className="object-cover object-center"
+    />
+  </div>
+
+  {/* Content */}
+  <div className="relative z-10 container-width w-full">
                         <div className={styles.heroContent}>
                             <h1 className={`${styles.heroTitle} max-w-[500px]`}>
                                 The Transformation Studio

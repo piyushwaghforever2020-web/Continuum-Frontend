@@ -322,11 +322,21 @@ export default function RegistrationPage() {
     <div className={styles.page}>
       <Header />
       <main>
-        <section
-          className={styles.hero}
-          style={{ backgroundImage: "url(/enterprise/pricingherobg.png)" }}
-        >
-          <div className="container-width w-full">
+        <section className={`${styles.hero} relative overflow-hidden`}>
+
+  {/* Background Image */}
+  <div className="absolute inset-0">
+    <Image
+      src="/enterprise/pricingherobg.png"
+      alt="Pricing Hero Banner"
+      fill
+      priority
+      className="object-cover object-center"
+    />
+  </div>
+
+  {/* Content */}
+  <div className="relative z-10 container-width w-full">
             <div className={`${registrationstyles.heroContent} max-w-[470px] `}>
               <h1 className={styles.heroTitle}>
                 Pick Your Cohort. Show Up Ready to Lead.

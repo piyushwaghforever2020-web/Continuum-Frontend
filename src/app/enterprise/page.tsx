@@ -19,10 +19,31 @@ export default function EnterprisePage() {
       <Header />
       <main>
         <section
-          className={`${styles.hero}  bg-[url('/images/heroSectionmobile.png')] md:bg-[url('/images/heroSection.png')]`}
-        // style={{ backgroundImage: "url(/enterprise/hero-bg.png)" }}
+          className={`${styles.hero}  relative overflow-hidden`}
         >
-          <div className="container-width w-full">
+
+            <div className="absolute inset-0 block md:hidden">
+    <Image
+      src="/images/heroSectionmobile.png"
+      alt="Hero Banner"
+      fill
+      priority
+      className="object-cover object-center"
+    />
+  </div>
+
+  {/* Desktop Background */}
+  <div className="absolute inset-0 hidden md:block">
+    <Image
+      src="/images/heroSection.png"
+      alt="Hero Banner"
+      fill
+      priority
+      className="object-cover object-center"
+    />
+  </div>
+
+          <div className="relative z-10  container-width w-full">
             <div className={styles.heroContent}>
               <h1 className={styles.heroTitle}>
                 De-risk the transformations your career depends on.

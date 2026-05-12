@@ -66,10 +66,32 @@ export default function EnterprisePage() {
     <div className={styles.page}>
       <Header />
       <main>
-        <section
-          className={`${styles.hero} bg-[url('/enterprise/labmobilebg.png')] md:bg-[url('/enterprise/labbg.png')]`}
-        >
-          <div className="container-width w-full">
+       <section className={`${styles.hero} relative overflow-hidden`}>
+
+  {/* Mobile Background */}
+  <div className="absolute inset-0 block md:hidden">
+    <Image
+      src="/enterprise/labmobilebg.png"
+      alt="Lab Banner"
+      fill
+      priority
+      className="object-cover object-center"
+    />
+  </div>
+
+  {/* Desktop Background */}
+  <div className="absolute inset-0 hidden md:block">
+    <Image
+      src="/enterprise/labbg.png"
+      alt="Lab Banner"
+      fill
+      priority
+      className="object-cover object-center"
+    />
+  </div>
+
+  {/* Content */}
+  <div className="relative z-10 container-width w-full">
             <div className={styles.heroContent}>
               <h1 className={styles.heroTitle}>
                 A private accelerator for women of color leading complex change.
