@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import styles from "../app/enterprise/enterprise.module.css";
+import Image from "next/image";
 
 
 export default function Hero() {
@@ -8,9 +9,30 @@ export default function Hero() {
   return (
     <>
       <section
-        className={` ${styles.homehero} bg-[url('/images/mainpagebannermobile.png')] md:bg-[url('/images/HomePagebanner.png')]`}
+        className={` ${styles.homehero} relative overflow-hidden`}
       >
-        <div className="container-width w-full">
+          <div className="absolute inset-0 block md:hidden">
+    <Image
+      src="/images/mainpagebannermobile.png"
+      alt="Banner"
+      fill
+      priority
+     className="object-cover object-center"
+    />
+  </div>
+
+  {/* Desktop Image */}
+  <div className="absolute inset-0 hidden md:block">
+    <Image
+      src="/images/HomePagebanner.png"
+      alt="Banner"
+      fill
+      priority
+     className="object-cover object-center"
+    />
+  </div>
+
+        <div className="relative z-10  container-width w-full">
           <div className={styles.heroContent}>
             <div
               className=" section-tag"
