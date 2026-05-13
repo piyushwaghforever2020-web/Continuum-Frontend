@@ -27,16 +27,21 @@ export default function AboutPage() {
             <Header />
             <main>
                 {/* ---------- Continuum transformation about section -------------- */}
-                <section
-                    className={styles.ctaBanner}
-                    style={{
-                        backgroundImage: "url(/aboutImages/bg-about.png)",
-                        backgroundRepeat: "no-repeat",
-                        backgroundPosition: "center",
-                        backgroundSize: "cover",
-                    }}
-                >
-                    <div className="flex flex-col gap-10 items-center">
+               <section className={`${styles.ctaBanner} relative overflow-hidden`}>
+
+  {/* Background Image */}
+  <div className="absolute inset-0">
+    <Image
+      src="/aboutImages/bg-about.png"
+      alt="About Background"
+      fill
+      priority
+      className="object-cover object-center"
+    />
+  </div>
+
+  {/* Content */}
+  <div className="relative z-10 flex flex-col gap-10 items-center">
                         <div className='flex flex-col items-center justify-center text-center gap-4'>
                             <p
                                 className={`${styles.heroTitle} ${playfair.className}`}

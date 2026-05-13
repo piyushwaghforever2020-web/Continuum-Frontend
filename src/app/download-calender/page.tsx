@@ -81,10 +81,34 @@ export default function DownloadCalenderPage() {
       <Header />
       <main>
         <section
-          className="flex min-h-[440px] items-center justify-center bg-[url('/contactImages/contact-bg.png')] bg-cover bg-center px-5 py-20 text-center md:bg-[url('/aboutImages/bg-about.png')]"
-          aria-labelledby="download-calendar-heading"
-        >
-          <div className="mx-auto flex max-w-[820px] flex-col items-center gap-5">
+  className="relative flex min-h-[440px] items-center justify-center overflow-hidden px-5 py-20 text-center"
+  aria-labelledby="download-calendar-heading"
+>
+
+  {/* Mobile Background */}
+  <div className="absolute inset-0 block md:hidden">
+    <Image
+      src="/contactImages/contact-bg.png"
+      alt="Contact Background"
+      fill
+      priority
+      className="object-cover object-center"
+    />
+  </div>
+
+  {/* Desktop Background */}
+  <div className="absolute inset-0 hidden md:block">
+    <Image
+      src="/aboutImages/bg-about.png"
+      alt="About Background"
+      fill
+      priority
+      className="object-cover object-center"
+    />
+  </div>
+
+  {/* Content */}
+  <div className="relative z-10 mx-auto flex max-w-[820px] flex-col items-center gap-5">
             <p
               id="download-calendar-heading"
               className={`${playfair.className} text-[34px] font-bold leading-[1.12] text-white md:text-[52px] lg:text-[60px]`}

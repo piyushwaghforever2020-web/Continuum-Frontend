@@ -4,6 +4,7 @@ import styles from "../enterprise/enterprise.module.css";
 import studiesstyles from "./studies.module.css";
 import { Tab } from "@headlessui/react";
 import Footer from "@/components/Footer";
+import Image from "next/image";
 export default function RegistrationPage() {
 
 
@@ -131,11 +132,21 @@ export default function RegistrationPage() {
     <div className={styles.page}>
       <Header />
       <main>
-        <section
-          className={studiesstyles.hero}
-          style={{ backgroundImage: "url(/enterprise/studiesherobg.png)" }}
-        >
-          <div className="container-width w-full flex justify-center">
+       <section className={`${studiesstyles.hero} relative overflow-hidden`}>
+
+  {/* Background Image */}
+  <div className="absolute inset-0">
+    <Image
+      src="/enterprise/studiesherobg.png"
+      alt="Studies Hero Background"
+      fill
+      priority
+      className="object-cover object-center"
+    />
+  </div>
+
+  {/* Content */}
+  <div className="relative z-10 container-width w-full flex justify-center">
             <div className={`${studiesstyles.heroContent} `}>
               <h1 className={styles.heroTitle}>
                 Case Studies

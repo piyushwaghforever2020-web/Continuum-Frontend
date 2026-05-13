@@ -598,7 +598,9 @@
 
 /* 📱 Mobile (≤576px) */
 @media (max-width: 576px) {
-
+   .buttonPrimary{
+     padding: 13px 22px;
+   }
   .enterpriseGrid,
   .enterpriseGridreverse {
     grid-template-columns: 1fr;

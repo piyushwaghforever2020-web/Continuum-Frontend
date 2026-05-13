@@ -86,22 +86,38 @@ export default function ContactPage() {
       <Header />
       <main>
         {/* ---------- Continuum transformation about section -------------- */}
-        <section
-          className={`${styles.ctaBanner} bg-[url('/talkWithUs/talkWithUs-small.png')] md:bg-[url('/talkWithUs/talkWithUs.png')]`}
-          style={{
-            // backgroundImage: "url(/aboutImages/bg-about.png)",
-            backgroundRepeat: "no-repeat",
-            backgroundPosition: "center",
-            backgroundSize: "cover",
-          }}
-        >
-          <div className="flex flex-col gap-10 items-center max-w-[802px] px-4 sm:px-0">
+      <section className={`${styles.ctaBanner} relative overflow-hidden`}>
+
+  {/* Mobile Background */}
+  <div className="absolute inset-0 block md:hidden">
+    <Image
+      src="/talkWithUs/talkWithUs-small.png"
+      alt="Talk With Us Background"
+      fill
+      priority
+      className="object-cover object-center"
+    />
+  </div>
+
+  {/* Desktop Background */}
+  <div className="absolute inset-0 hidden md:block">
+    <Image
+      src="/talkWithUs/talkWithUs.png"
+      alt="Talk With Us Background"
+      fill
+      priority
+      className="object-cover object-center"
+    />
+  </div>
+
+  {/* Content */}
+  <div className="relative z-10 flex flex-col gap-10 items-center max-w-[802px] px-4 sm:px-0">
             <div className="flex flex-col items-center justify-center text-center gap-4">
               <p
                 className={`${styles.heroTitle} ${playfair.className}`}
                 style={{ color: "white" }}
               >
-                Talk With Us About Scope & Investment rdfgf
+                Talk With Us About Scope & Investment
               </p>
               <p className={`${styles.heroText} max-w-[54rem]`}>
                 Every organization’s needs are different. Let’s explore the
