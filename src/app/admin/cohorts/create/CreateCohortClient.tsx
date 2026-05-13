@@ -26,16 +26,23 @@ type ProgramRow = {
   programDescription: string;
 };
 
+type RefundDeferralPolicyRow = {
+  program: string;
+  pricePerSeat: string;
+};
+
 type EditCohortForm = {
   cohortTitle: string;
   cohortDescription: string;
+  programOverview: string;
   hasMultiProgram: boolean;
   startDate: string;
   endDate: string;
+  timeCommitment: string;
   liveSessions: string;
   workshop: string;
   cohortSize: string;
-  refundPolicy: string;
+  refundDeferralPolicy: RefundDeferralPolicyRow[];
   investments: InvestmentRow[];
   leaveWith: TextRow[];
   ctaDescription: string;
@@ -59,16 +66,23 @@ const emptyProgramRow: ProgramRow = {
   programDescription: "",
 };
 
+const emptyRefundDeferralPolicyRow: RefundDeferralPolicyRow = {
+  program: "",
+  pricePerSeat: "",
+};
+
 const initialForm: EditCohortForm = {
   cohortTitle: "",
   cohortDescription: "",
+  programOverview: "",
   hasMultiProgram: false,
   startDate: "",
   endDate: "",
+  timeCommitment: "",
   liveSessions: "",
   workshop: "",
   cohortSize: "",
-  refundPolicy: "",
+  refundDeferralPolicy: [{ ...emptyRefundDeferralPolicyRow }],
   investments: [{ ...emptyInvestmentRow }],
   leaveWith: [{ ...emptyTextRow }],
   ctaDescription: "",
@@ -143,6 +157,20 @@ export default function CreateCohortClient() {
     setSubmitMessage("");
   };
 
+  const updateRefundDeferralPolicy = (
+    index: number,
+    field: keyof RefundDeferralPolicyRow,
+    value: string
+  ) => {
+    setForm((current) => ({
+      ...current,
+      refundDeferralPolicy: current.refundDeferralPolicy.map((row, rowIndex) =>
+        rowIndex === index ? { ...row, [field]: value } : row
+      ),
+    }));
+    setSubmitMessage("");
+  };
+
   const addInvestment = () => {
     setForm((current) => ({
       ...current,
@@ -177,6 +205,28 @@ export default function CreateCohortClient() {
     }));
   };
 
+  const addRefundDeferralPolicy = () => {
+    setForm((current) => ({
+      ...current,
+      refundDeferralPolicy: [
+        ...current.refundDeferralPolicy,
+        { ...emptyRefundDeferralPolicyRow },
+      ],
+    }));
+  };
+
+  const removeRefundDeferralPolicy = (index: number) => {
+    setForm((current) => ({
+      ...current,
+      refundDeferralPolicy:
+        current.refundDeferralPolicy.length === 1
+          ? [{ ...emptyRefundDeferralPolicyRow }]
+          : current.refundDeferralPolicy.filter(
+              (_, rowIndex) => rowIndex !== index
+            ),
+    }));
+  };
+
   const addProgram = () => {
     setForm((current) => ({
       ...current,
@@ -205,11 +255,18 @@ export default function CreateCohortClient() {
       const payload: Record<string, unknown> = {
         name: form.cohortTitle.trim(),
         description: form.cohortDescription.trim(),
+        program_overview: form.programOverview.trim(),
+        time_commitment: form.timeCommitment.trim(),
         start_date: form.startDate,
         end_date: form.endDate,
         price: form.price,
         seat_limit: parseNumberOrText(form.cohortSize),
-        refund_policy: form.refundPolicy.trim(),
+        refund_deferral_policy: form.refundDeferralPolicy
+          .map((row) => ({
+            program: row.program.trim(),
+            price_per_seat: row.pricePerSeat.trim(),
+          }))
+          .filter((row) => row.program || row.price_per_seat),
         leave_with: form.leaveWith
           .map((row) => row.value.trim())
           .filter(Boolean),
@@ -297,6 +354,17 @@ export default function CreateCohortClient() {
                   }
                   />
               </label>
+              <label className="admin-form-field">
+                <span>Program Overview</span>
+                <textarea
+                  rows={3}
+                  value={form.programOverview}
+                  disabled={isLoading}
+                  onChange={(event) =>
+                    updateField("programOverview", event.target.value)
+                  }
+                  />
+              </label>
                   </div>
             </section>
 
@@ -337,6 +405,16 @@ export default function CreateCohortClient() {
                   />
                 </label>
                 <label className="admin-form-field">
+                  <span>Time Commitment</span>
+                  <input
+                    value={form.timeCommitment}
+                    disabled={isLoading}
+                    onChange={(event) =>
+                      updateField("timeCommitment", event.target.value)
+                    }
+                  />
+                </label>
+                <label className="admin-form-field">
                   <span>Workshop</span>
                   <input
                     value={form.workshop}
@@ -358,18 +436,54 @@ export default function CreateCohortClient() {
                   }
                 />
               </label>
-              <label className="admin-form-field">
-                <span>Refund Policy</span>
-                 <input
-                  value={form.refundPolicy}
-                  disabled={isLoading}
-                  onChange={(event) =>
-                    updateField("refundPolicy", event.target.value)
-                  }
-                />
-              </label>
               </div>
              
+            </section>
+
+            <section className="admin-edit-section">
+              <div className="admin-edit-section__heading-row">
+                <h3 className="admin-edit-section__title">Refund & Deferral Policy</h3>
+                <button type="button" className="admin-mini-button" onClick={addRefundDeferralPolicy}>
+                  <FiPlus size={12} />
+                  <span>Add row</span>
+                </button>
+              </div>
+              <hr />
+              <div className="admin-edit-table admin-edit-table--refund-policy">
+                <div className="admin-edit-table__head">
+                  <span>#</span>
+                  <span>Program</span>
+                  <span>Price Per Seat</span>
+                  <span />
+                </div>
+                {form.refundDeferralPolicy.map((row, index) => (
+                  <div className="admin-edit-table__row" key={`refund-policy-${index}`}>
+                    <span className="admin-edit-table__index">{index + 1}</span>
+                    <input
+                      value={row.program}
+                      disabled={isLoading}
+                      onChange={(event) =>
+                        updateRefundDeferralPolicy(index, "program", event.target.value)
+                      }
+                    />
+                    <input
+                      value={row.pricePerSeat}
+                      disabled={isLoading}
+                      onChange={(event) =>
+                        updateRefundDeferralPolicy(index, "pricePerSeat", event.target.value)
+                      }
+                    />
+                    <button
+                      type="button"
+                      className="admin-icon-button admin-edit-table__delete"
+                      aria-label="Delete refund policy row"
+                      onClick={() => removeRefundDeferralPolicy(index)}
+                    >
+                      <FiTrash2 size={13} />
+                    </button>
+                  </div>
+                ))}
+              </div>
             </section>
 
             <section className="admin-edit-section">
