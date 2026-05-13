@@ -71,7 +71,7 @@ export default function EnterprisePage() {
   {/* Mobile Background */}
   <div className="absolute inset-0 block md:hidden">
     <Image
-      src="/enterprise/labmobilebg.png"
+      src="/enterprise/labmobilebg.webp"
       alt="Lab Banner"
       fill
       priority
@@ -82,10 +82,10 @@ export default function EnterprisePage() {
   {/* Desktop Background */}
   <div className="absolute inset-0 hidden md:block">
     <Image
-      src="/enterprise/labbg.png"
+      src="/enterprise/labbg.webp"
       alt="Lab Banner"
       fill
-      priority
+      // priority
       className="object-cover object-center"
     />
   </div>
@@ -199,7 +199,7 @@ export default function EnterprisePage() {
 
               <Image
                 className="justify-self-center lg:justify-self-start  "
-                src="/enterprise/womenthinking.png"
+                src="/enterprise/womenthinking.webp"
                 alt="Enterprise leaders in a meeting"
                 width={650}
                 height={603}
@@ -252,7 +252,7 @@ export default function EnterprisePage() {
               </div>
 
               <img
-                src="/images/lab-bg.png"
+                src="/images/lab-bg.webp"
                 alt=""
                 className="h-full w-full rounded-[24px]"
               />
@@ -344,7 +344,7 @@ export default function EnterprisePage() {
             <div className="grid grid-cols-2 gap-6 justify-between ">
               <Image
                 className="justify-self-center lg:justify-self-end w-full"
-                src="/enterprise/dashboardSummary.png"
+                src="/enterprise/dashboardSummary.webp"
                 alt="Enterprise leaders in a meeting"
                 width={660}
                 height={495}
@@ -494,7 +494,7 @@ export default function EnterprisePage() {
               </div>
 
               <img
-                src="/enterprise/Community&Safety.png"
+                src="/enterprise/Community&Safety.webp"
                 alt=""
                 className="w-full"
               />
@@ -541,7 +541,7 @@ export default function EnterprisePage() {
             <div className="grid grid-cols-2 gap-6 justify-between ">
               <Image
                 className="justify-self-center lg:justify-self-start  "
-                src="/enterprise/investmentmeeting.png"
+                src="/enterprise/investmentmeeting.webp"
                 alt="Enterprise leaders in a meeting"
                 width={600}
                 height={590}
@@ -627,7 +627,7 @@ export default function EnterprisePage() {
           id="eligibility"
           className={styles.eligibilitySection}
           style={{
-            backgroundImage: "url(/enterprise/eligibility.png)",
+            backgroundImage: "url(/enterprise/eligibility.webp)",
             backgroundRepeat: "no-repeat",
             backgroundPosition: "center",
             backgroundSize: "cover",
@@ -774,7 +774,7 @@ export default function EnterprisePage() {
 
         <section
           className={styles.ctaBanner}
-          style={{ backgroundImage: "url(/enterprise/transformrommbg.png)" }}
+          style={{ backgroundImage: "url(/enterprise/transformrommbg.webp)" }}
         >
           <div className="flex flex-col gap-5  items-center px-5 lg:px-0">
             <p

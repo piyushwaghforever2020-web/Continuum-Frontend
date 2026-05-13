@@ -14,7 +14,7 @@
   overflow: hidden;
   background:
     linear-gradient(135deg, rgba(73, 27, 39, 0.94), rgba(28, 20, 16, 0.94)),
-    url("/aboutImages/bg-about.png") center / cover no-repeat;
+    url("/aboutImages/bg-about.webp") center / cover no-repeat;
 }
 
 .hero::after {

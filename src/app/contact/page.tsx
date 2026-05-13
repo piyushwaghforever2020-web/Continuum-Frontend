@@ -185,7 +185,7 @@ export default function ContactPage() {
   {/* Mobile Background */}
   <div className="absolute inset-0 block md:hidden">
     <Image
-      src="/contactImages/contact-bg.png"
+      src="/contactImages/contact-bg.webp"
       alt="Contact Background"
       fill
       priority
@@ -196,10 +196,10 @@ export default function ContactPage() {
   {/* Desktop Background */}
   <div className="absolute inset-0 hidden md:block">
     <Image
-      src="/aboutImages/bg-about.png"
+      src="/aboutImages/bg-about.webp"
       alt="About Background"
       fill
-      priority
+    //   priority
       className="object-cover object-center"
     />
   </div>

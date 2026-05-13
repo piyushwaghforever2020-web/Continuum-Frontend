@@ -99,10 +99,10 @@ export default function DownloadCalenderPage() {
   {/* Desktop Background */}
   <div className="absolute inset-0 hidden md:block">
     <Image
-      src="/aboutImages/bg-about.png"
+      src="/aboutImages/bg-about.webp"
       alt="About Background"
       fill
-      priority
+      // priority
       className="object-cover object-center"
     />
   </div>

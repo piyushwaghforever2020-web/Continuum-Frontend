@@ -13,7 +13,7 @@ export default function Hero() {
       >
           <div className="absolute inset-0 block md:hidden">
     <Image
-      src="/images/mainpagebannermobile.png"
+      src="/images/mainpagebannermobile.webp"
       alt="Banner"
       fill
       priority
@@ -24,10 +24,10 @@ export default function Hero() {
   {/* Desktop Image */}
   <div className="absolute inset-0 hidden md:block">
     <Image
-      src="/images/HomePagebanner.png"
+      src="/images/HomePagebanner.webp"
       alt="Banner"
       fill
-      priority
+      // priority
      className="object-cover object-center"
     />
   </div>

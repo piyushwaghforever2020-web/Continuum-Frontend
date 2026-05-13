@@ -24,7 +24,7 @@ export default function EnterprisePage() {
 
             <div className="absolute inset-0 block md:hidden">
     <Image
-      src="/images/heroSectionmobile.png"
+      src="/images/heroSectionmobile.webp"
       alt="Hero Banner"
       fill
       priority
@@ -35,10 +35,10 @@ export default function EnterprisePage() {
   {/* Desktop Background */}
   <div className="absolute inset-0 hidden md:block">
     <Image
-      src="/images/heroSection.png"
+      src="/images/heroSection.webp"
       alt="Hero Banner"
       fill
-      priority
+      // priority
       className="object-cover object-center"
     />
   </div>
@@ -139,7 +139,7 @@ export default function EnterprisePage() {
 
               <Image
                 className=" justify-self-center lg:justify-self-end "
-                src="/enterprise/enterprise-group.png"
+                src="/enterprise/enterprise-group.webp"
                 alt="Enterprise leaders in a meeting"
                 width={644}
                 height={518}
@@ -461,14 +461,14 @@ export default function EnterprisePage() {
 
               {/* Desktop (≥1024px) */}
               <img
-                src="/enterprise/lab-leaders.png"
+                src="/enterprise/lab-leaders.webp"
                 alt="Leader in an AI automation lab"
                 className={`${styles.enterpriseimage} hidden lg:block`}
               />
 
               {/* Mobile / Tablet (<1024px) */}
               <img
-                src="/enterprise/lab-leaders-mobile.png"
+                src="/enterprise/lab-leaders-mobile.webp"
                 alt="Leader in an AI automation lab"
                 className={`${styles.enterpriseimage} block lg:hidden`}
               />
@@ -480,14 +480,14 @@ export default function EnterprisePage() {
           <div className="container-width w-full">
             <div className={styles.enterpriseGridreverse}>
               <img
-                src="/enterprise/aiMetting.png"
+                src="/enterprise/aiMetting.webp"
                 alt="Leader in an AI automation lab"
                 className={`${styles.enterpriseimage} hidden lg:block`}
 
               />
               {/* Mobile / Tablet (<1024px) */}
               <img
-                src="/enterprise/aiMettingmobile.png"
+                src="/enterprise/aiMettingmobile.webp"
                 alt="Leader in an AI automation lab"
                 className={`${styles.enterpriseimage} block lg:hidden`}
               />
@@ -945,13 +945,13 @@ export default function EnterprisePage() {
                 </div>
               </div>
               <img
-                src="/enterprise/complex-projects.png"
+                src="/enterprise/complex-projects.webp"
                 alt="Leader in an AI automation lab"
                 className={`${styles.enterpriseimage} hidden lg:block`}
               />
               {/* Mobile / Tablet (<1024px) */}
               <img
-                src="/enterprise/complex-projectsMobile.png"
+                src="/enterprise/complex-projectsMobile.webp"
                 alt="Leader in an AI automation lab"
                 className={`${styles.enterpriseimage} block lg:hidden`}
               />
@@ -1240,7 +1240,7 @@ export default function EnterprisePage() {
         <section
           className={styles.ctaBanner}
           style={{
-            backgroundImage: "url(/enterprise/cta-bg.png)",
+            backgroundImage: "url(/enterprise/cta-bg.webp)",
             backgroundSize: 'cover',
             backgroundPosition: 'center',
           }}

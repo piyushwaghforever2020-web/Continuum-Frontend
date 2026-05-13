@@ -83,7 +83,7 @@ export default function TransformationStudioPage() {
   {/* Mobile Background */}
   <div className="absolute inset-0 block md:hidden">
     <Image
-      src="/sponsorshipImages/sponsor-mobile.png"
+      src="/sponsorshipImages/sponsor-mobile.webp"
       alt="Sponsor Banner"
       fill
       priority
@@ -94,10 +94,10 @@ export default function TransformationStudioPage() {
   {/* Desktop Background */}
   <div className="absolute inset-0 hidden md:block">
     <Image
-      src="/sponsorshipImages/sponsor-bg.png"
+      src="/sponsorshipImages/sponsor-bg.webp"
       alt="Sponsor Banner"
       fill
-      priority
+    //   priority
       className="object-cover object-center"
     />
   </div>
@@ -857,7 +857,7 @@ export default function TransformationStudioPage() {
                 <section
                     className={styles.ctaBanner}
                     style={{
-                        backgroundImage: "url(/sponsorshipImages/investInWOC.png)",
+                        backgroundImage: "url(/sponsorshipImages/investInWOC.webp)",
                         backgroundRepeat: "no-repeat",
                         backgroundPosition: "center",
                         backgroundSize: "cover",

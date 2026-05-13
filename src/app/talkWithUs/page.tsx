@@ -91,7 +91,7 @@ export default function ContactPage() {
   {/* Mobile Background */}
   <div className="absolute inset-0 block md:hidden">
     <Image
-      src="/talkWithUs/talkWithUs-small.png"
+      src="/talkWithUs/talkWithUs-small.webp"
       alt="Talk With Us Background"
       fill
       priority
@@ -102,10 +102,10 @@ export default function ContactPage() {
   {/* Desktop Background */}
   <div className="absolute inset-0 hidden md:block">
     <Image
-      src="/talkWithUs/talkWithUs.png"
+      src="/talkWithUs/talkWithUs.webp"
       alt="Talk With Us Background"
       fill
-      priority
+      // priority
       className="object-cover object-center"
     />
   </div>
