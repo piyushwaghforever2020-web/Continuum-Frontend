@@ -1765,7 +1765,7 @@
 .admin-modal__button--secondary {
   border: 1px solid var(--admin-border);
   background: #fff;
-  color: var(--color-nearBlack);
+  color: var(--color-burgundy);
 }
 
 .admin-modal__button--primary {
@@ -1888,6 +1888,28 @@
   line-height: 20px;
   font-weight: 700;
   color: var(--color-nearBlack);
+}
+
+.admin-info-card__list {
+  margin: 0.5rem 0 0;
+  padding-left: 1.25rem;
+  list-style-type: disc;
+  color: #73788c;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.admin-info-card__list li {
+  margin-top: 0.35rem;
+}
+
+.admin-info-card__list li:first-child {
+  margin-top: 0;
+}
+
+.admin-info-card__text-sep {
+  color: #73788c;
+  font-weight: 400;
 }
 
 .admin-detail-actions {

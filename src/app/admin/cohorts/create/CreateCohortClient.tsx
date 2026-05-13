@@ -106,6 +106,7 @@ export default function CreateCohortClient() {
   const [form, setForm] = useState<EditCohortForm>(initialForm);
   const [isLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDraftRequest, setIsDraftRequest] = useState(false);
   const [error, setError] = useState("");
   const [submitMessage, setSubmitMessage] = useState("");
 
@@ -244,58 +245,60 @@ export default function CreateCohortClient() {
     }));
   };
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const buildCreatePayload = (): Record<string, unknown> => {
+    const payload: Record<string, unknown> = {
+      name: form.cohortTitle.trim(),
+      description: form.cohortDescription.trim(),
+      program_overview: form.programOverview.trim(),
+      time_commitment: form.timeCommitment.trim(),
+      start_date: form.startDate,
+      end_date: form.endDate,
+      price: form.price,
+      seat_limit: parseNumberOrText(form.cohortSize),
+      refund_deferral_policy: form.refundDeferralPolicy
+        .map((row) => ({
+          program: row.program.trim(),
+          price_per_seat: row.pricePerSeat.trim(),
+        }))
+        .filter((row) => row.program || row.price_per_seat),
+      leave_with: form.leaveWith
+        .map((row) => row.value.trim())
+        .filter(Boolean),
+      live_sessions_text: form.liveSessions.trim(),
+      workshops_text: form.workshop.trim(),
+      cohort_size_text: form.cohortSize.trim(),
+      investment_tiers: form.investments.map((row) => ({
+        tier: row.titleName.trim(),
+        price: row.price,
+        best_for: row.whatYouGet.trim(),
+      })),
+      scarcity_text: form.ctaDescription.trim(),
+      display_price: form.price,
+      has_multi_program: form.hasMultiProgram,
+    };
 
+    if (form.hasMultiProgram) {
+      payload.programs = form.programs
+        .map((row) => ({
+          ...(row.programId ? { program_id: parseNumberOrText(row.programId) } : {}),
+          program_name: row.programName.trim(),
+          program_description: row.programDescription.trim(),
+        }))
+        .filter((row) => row.program_id || row.program_name || row.program_description);
+    }
+
+    return payload;
+  };
+
+  const submitCohort = async (isDraft: boolean) => {
     try {
       setIsSubmitting(true);
+      setIsDraftRequest(isDraft);
       setError("");
       setSubmitMessage("");
 
-      const payload: Record<string, unknown> = {
-        name: form.cohortTitle.trim(),
-        description: form.cohortDescription.trim(),
-        program_overview: form.programOverview.trim(),
-        time_commitment: form.timeCommitment.trim(),
-        start_date: form.startDate,
-        end_date: form.endDate,
-        price: form.price,
-        seat_limit: parseNumberOrText(form.cohortSize),
-        refund_deferral_policy: form.refundDeferralPolicy
-          .map((row) => ({
-            program: row.program.trim(),
-            price_per_seat: row.pricePerSeat.trim(),
-          }))
-          .filter((row) => row.program || row.price_per_seat),
-        leave_with: form.leaveWith
-          .map((row) => row.value.trim())
-          .filter(Boolean),
-        live_sessions_text: form.liveSessions.trim(),
-        workshops_text: form.workshop.trim(),
-        cohort_size_text: form.cohortSize.trim(),
-        investment_tiers: form.investments.map((row) => ({
-          tier: row.titleName.trim(),
-          price: row.price,
-          best_for: row.whatYouGet.trim(),
-        })),
-        scarcity_text: form.ctaDescription.trim(),
-        display_price: form.price,
-        has_multi_program: form.hasMultiProgram,
-      };
-
-      if (form.hasMultiProgram) {
-        payload.programs = form.programs
-          .map((row) => ({
-             ...(
-    row.programId
-      ? { program_id: parseNumberOrText(row.programId) }
-      : {}
-  ),
-            program_name: row.programName.trim(),
-            program_description: row.programDescription.trim(),
-          }))
-          .filter((row) => row.program_id || row.program_name || row.program_description);
-      }
+      const payload = buildCreatePayload();
+      payload.is_draft = isDraft;
 
       await createAdminCohort(payload);
       router.replace("/admin/cohorts");
@@ -304,7 +307,17 @@ export default function CreateCohortClient() {
       setError(err instanceof Error ? err.message : "Failed to create cohort.");
     } finally {
       setIsSubmitting(false);
+      setIsDraftRequest(false);
     }
+  };
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    await submitCohort(false);
+  };
+
+  const handleSaveDraft = () => {
+    void submitCohort(true);
   };
 
   return (
@@ -672,13 +685,21 @@ export default function CreateCohortClient() {
               </section>
             ) : null}
 
-            <div className="admin-edit-cohort__actions">
+            <div className="admin-edit-cohort__actions gap-3 flex-wrap">
+              <button
+                type="button"
+                className="admin-modal__button admin-modal__button--secondary"
+                disabled={isLoading || isSubmitting}
+                onClick={handleSaveDraft}
+              >
+                {isSubmitting && isDraftRequest ? "Saving draft..." : "Save as draft"}
+              </button>
               <button
                 type="submit"
                 className="admin-modal__button text-[var(--color-warmCreamy)] bg-[var(--color-burgundy)]"
                 disabled={isLoading || isSubmitting}
               >
-                {isSubmitting ? "Submitting..." : "Submit"}
+                {isSubmitting && !isDraftRequest ? "Submitting..." : "Submit"}
               </button>
             </div>
           </form>

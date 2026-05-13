@@ -39,6 +39,11 @@ type ParticipantsPagination = {
   perPage: number;
 };
 
+type RefundDeferralPolicyRow = {
+  program: string;
+  pricePerSeat: string;
+};
+
 type CohortDetail = {
   id: string;
   name: string;
@@ -49,7 +54,10 @@ type CohortDetail = {
   seatLimit: number;
   status: CohortStatus;
   is_active?: boolean;
+  /** Legacy single string from API */
   refundPolicy: string;
+  /** New shape: [{ program, price_per_seat }] */
+  refundDeferralPolicy: RefundDeferralPolicyRow[];
   revenue: number;
   participants: CohortParticipant[];
 };
@@ -65,6 +73,7 @@ type CohortListItem = {
   status: CohortStatus;
   is_active?: boolean;
   refundPolicy: string;
+  refundDeferralPolicy: RefundDeferralPolicyRow[];
   revenue: number;
   participants: CohortParticipant[];
 };
@@ -157,12 +166,45 @@ function normalizeParticipantsPagination(payload: unknown): ParticipantsPaginati
   };
 }
 
+function normalizeRefundDeferralPolicyRow(item: unknown): RefundDeferralPolicyRow {
+  if (typeof item === "string") {
+    return { program: "", pricePerSeat: item.trim() };
+  }
+
+  const row =
+    item && typeof item === "object" && !Array.isArray(item)
+      ? (item as Record<string, unknown>)
+      : {};
+
+  return {
+    program: String(row.program ?? row.name ?? row.title ?? "").trim(),
+    pricePerSeat: String(
+      row.price_per_seat ?? row.pricePerSeat ?? row.policy ?? row.value ?? ""
+    ).trim(),
+  };
+}
+
+function normalizeRefundDeferralPolicyFromApi(raw: Record<string, unknown>): RefundDeferralPolicyRow[] {
+  const source = raw.refund_deferral_policy ?? raw.refundDeferralPolicy;
+
+  if (!Array.isArray(source) || source.length === 0) {
+    return [];
+  }
+
+  return source
+    .map(normalizeRefundDeferralPolicyRow)
+    .filter((row) => row.program.length > 0 || row.pricePerSeat.length > 0);
+}
+
 function normalizeCohort(payload: unknown): CohortDetail | null {
   const response = (payload ?? {}) as Record<string, unknown>;
   const raw = ((response.data ?? response.cohort ?? response) ?? {}) as Record<string, unknown>;
   const id = raw.id ?? raw._id ?? raw.cohort_id;
 
   if (!id) return null;
+
+  const refundDeferralPolicy = normalizeRefundDeferralPolicyFromApi(raw);
+  const legacyRefund = String(raw.refundPolicy ?? raw.refund_policy ?? "").trim();
 
   return {
     id: String(id),
@@ -174,7 +216,10 @@ function normalizeCohort(payload: unknown): CohortDetail | null {
     seatLimit: Number(raw.seatLimit ?? raw.seat_limit ?? raw.totalSeats ?? 0),
     status: normalizeStatus(raw.status),
     is_active: raw.is_active !== undefined ? Boolean(raw.is_active) : true,
-    refundPolicy: String(raw.refundPolicy ?? raw.refund_policy ?? "No refund policy provided."),
+    refundPolicy:
+      legacyRefund ||
+      (refundDeferralPolicy.length === 0 ? "No refund policy provided." : ""),
+    refundDeferralPolicy,
     revenue: Number(raw.revenue ?? raw.totalRevenue ?? 0),
     participants: normalizeParticipants(raw.participants ?? raw.enrollments ?? raw.members),
   };
@@ -199,6 +244,7 @@ function normalizeCohortItem(payload: unknown): CohortListItem | null {
     status: normalizeStatus(raw.status),
     is_active: raw.is_active !== undefined ? Boolean(raw.is_active) : true,
     refundPolicy: String(raw.refundPolicy ?? raw.refund_policy ?? ""),
+    refundDeferralPolicy: normalizeRefundDeferralPolicyFromApi(raw),
     revenue: Number(raw.revenue ?? raw.total_revenue ?? 0),
     participants: normalizeParticipants(raw.participants),
   };
@@ -808,8 +854,32 @@ export default function CohortDetailClient() {
               </article>
 
               <article className="admin-card admin-info-card">
-                <h3 className="admin-section-title">Refund Terms</h3>
-                <p className="admin-info-card__text">{cohort?.refundPolicy ? cohort?.refundPolicy : "Full refund up to 7 days before start date"}</p>
+                <h3 className="admin-section-title">Refund / deferral policy</h3>
+                {cohort?.refundDeferralPolicy && cohort.refundDeferralPolicy.length > 0 ? (
+                  <ul className="admin-info-card__list">
+                    {cohort.refundDeferralPolicy.map((row, index) => (
+                      <li key={`refund-policy-${index}`}>
+                        {row.program ? (
+                          <span className="admin-info-card__meta">{row.program}</span>
+                        ) : null}
+                        {row.program && row.pricePerSeat ? <span className="admin-info-card__text-sep"> — </span> : null}
+                        {row.pricePerSeat ? (
+                          <span>
+                            Price per seat: <span className="admin-info-card__meta">{row.pricePerSeat}</span>
+                          </span>
+                        ) : null}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="admin-info-card__text">
+                    {cohort?.refundPolicy
+                      ? cohort.refundPolicy
+                      : loading
+                        ? "Loading…"
+                        : "Full refund up to 7 days before start date"}
+                  </p>
+                )}
               </article>
             </section>
 
