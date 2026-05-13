@@ -65,7 +65,7 @@ export default function TransformationStudioPage() {
   {/* Mobile Background */}
   <div className="absolute inset-0 block md:hidden">
     <Image
-      src="/studioImages/transformation-mobile.png"
+      src="/studioImages/transformation-mobile.webp"
       alt="Transformation Studio Banner"
       fill
       priority

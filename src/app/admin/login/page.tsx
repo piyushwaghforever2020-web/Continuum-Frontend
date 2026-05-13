@@ -65,7 +65,7 @@ export default function AdminLogin() {
     <div className="relative h-screen w-full">
       {/* Background */}
       <Image
-        src="/admin/login.png"
+        src="/admin/login.webp"
         alt="background"
         fill
         priority

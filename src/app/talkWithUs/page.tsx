@@ -91,7 +91,7 @@ export default function ContactPage() {
   {/* Mobile Background */}
   <div className="absolute inset-0 block md:hidden">
     <Image
-      src="/talkWithUs/talkWithUs-small.png"
+      src="/talkWithUs/talkWithUs-small.webp"
       alt="Talk With Us Background"
       fill
       priority

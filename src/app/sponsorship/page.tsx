@@ -83,7 +83,7 @@ export default function TransformationStudioPage() {
   {/* Mobile Background */}
   <div className="absolute inset-0 block md:hidden">
     <Image
-      src="/sponsorshipImages/sponsor-mobile.png"
+      src="/sponsorshipImages/sponsor-mobile.webp"
       alt="Sponsor Banner"
       fill
       priority

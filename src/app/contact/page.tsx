@@ -185,7 +185,7 @@ export default function ContactPage() {
   {/* Mobile Background */}
   <div className="absolute inset-0 block md:hidden">
     <Image
-      src="/contactImages/contact-bg.png"
+      src="/contactImages/contact-bg.webp"
       alt="Contact Background"
       fill
       priority
