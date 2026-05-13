@@ -760,6 +760,8 @@
   grid-template-columns: 20px minmax(0, 1fr) 28px;
   align-items: center;
   margin-top: 5px;
+  margin-bottom: 5px;
+
   gap: 0.65rem;
 }
 
