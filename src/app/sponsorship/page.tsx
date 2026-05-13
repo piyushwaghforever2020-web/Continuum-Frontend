@@ -97,7 +97,7 @@ export default function TransformationStudioPage() {
       src="/sponsorshipImages/sponsor-bg.webp"
       alt="Sponsor Banner"
       fill
-      priority
+    //   priority
       className="object-cover object-center"
     />
   </div>

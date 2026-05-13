@@ -27,7 +27,7 @@ export default function Hero() {
       src="/images/HomePagebanner.webp"
       alt="Banner"
       fill
-      priority
+      // priority
      className="object-cover object-center"
     />
   </div>

@@ -199,7 +199,7 @@ export default function ContactPage() {
       src="/aboutImages/bg-about.webp"
       alt="About Background"
       fill
-      priority
+    //   priority
       className="object-cover object-center"
     />
   </div>

@@ -38,7 +38,7 @@ export default function EnterprisePage() {
       src="/images/heroSection.webp"
       alt="Hero Banner"
       fill
-      priority
+      // priority
       className="object-cover object-center"
     />
   </div>

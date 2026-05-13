@@ -85,7 +85,7 @@ export default function EnterprisePage() {
       src="/enterprise/labbg.webp"
       alt="Lab Banner"
       fill
-      priority
+      // priority
       className="object-cover object-center"
     />
   </div>

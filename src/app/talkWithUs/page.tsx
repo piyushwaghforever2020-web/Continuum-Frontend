@@ -105,7 +105,7 @@ export default function ContactPage() {
       src="/talkWithUs/talkWithUs.webp"
       alt="Talk With Us Background"
       fill
-      priority
+      // priority
       className="object-cover object-center"
     />
   </div>

@@ -79,7 +79,7 @@ export default function TransformationStudioPage() {
       src="/studioImages/transformation-studio04.webp"
       alt="Transformation Studio Banner"
       fill
-      priority
+    //   priority
       className="object-cover object-center"
     />
   </div>
