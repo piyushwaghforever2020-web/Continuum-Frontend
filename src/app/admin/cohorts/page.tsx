@@ -429,7 +429,7 @@ export default function CohortsPage() {
       {
         key: "price",
         header: "Price",
-        render: (row) => row.price,
+        render: (row) => `$${row.price} USD`,
       },
       {
         key: "seats",

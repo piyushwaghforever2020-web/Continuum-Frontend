@@ -849,7 +849,7 @@ export default function CohortDetailClient() {
 
               <article className="admin-card admin-info-card">
                 <h3 className="admin-section-title">Pricing</h3>
-                <p className="admin-info-card__price !mb-3 !mt-3">{cohort?.price ?? 0}</p>
+                <p className="admin-info-card__price !mb-3 !mt-3">{`$${cohort?.price ?? 0} USD`}</p>
                 <p className="admin-info-card__text">per participant</p>
               </article>
 

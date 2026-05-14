@@ -9,6 +9,7 @@ import AdminHeader from "@/components/AdminHeader";
 import Sidebar from "@/components/Sidebar";
 import { AdminToggle } from "@/components/admin/AdminTable";
 import { createAdminCohort } from "@/services/admin.services";
+import { programRowDefaultName } from "@/app/admin/cohorts/programRowLabels";
 
 type InvestmentRow = {
   titleName: string;
@@ -87,7 +88,7 @@ const initialForm: EditCohortForm = {
   leaveWith: [{ ...emptyTextRow }],
   ctaDescription: "",
   price: "",
-  programs: [{ ...emptyProgramRow }],
+  programs: [{ ...emptyProgramRow, programName: programRowDefaultName(0) }],
 };
 
 function parseNumberOrText(value: string) {
@@ -231,7 +232,13 @@ export default function CreateCohortClient() {
   const addProgram = () => {
     setForm((current) => ({
       ...current,
-      programs: [...current.programs, { ...emptyProgramRow }],
+      programs: [
+        ...current.programs,
+        {
+          ...emptyProgramRow,
+          programName: programRowDefaultName(current.programs.length),
+        },
+      ],
     }));
   };
 
@@ -240,7 +247,7 @@ export default function CreateCohortClient() {
       ...current,
       programs:
         current.programs.length === 1
-          ? [{ ...emptyProgramRow }]
+          ? [{ ...emptyProgramRow, programName: programRowDefaultName(0) }]
           : current.programs.filter((_, rowIndex) => rowIndex !== index),
     }));
   };
@@ -610,13 +617,14 @@ export default function CreateCohortClient() {
                   <span>Price </span>
                   <div className="admin-money-input" style={{ display: "flex" }}>
                     <input
-                      inputMode="text"
+                      inputMode="numeric"
                       value={form.price}
                       disabled={isLoading}
                       aria-label="Price"
-                      placeholder="$1,400–$1,500"
-                      onChange={(event) => updateField("price", event.target.value
-                      )}
+                      onChange={(event) => {
+                        const value = event.target.value.replace(/\D/g, "");
+                        updateField("price", value);
+                      }}
                     />
                   </div>
                 </label>

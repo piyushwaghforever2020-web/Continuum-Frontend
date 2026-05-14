@@ -8,6 +8,7 @@ import { FiArrowLeft, FiPlus, FiTrash2 } from "react-icons/fi";
 import AdminHeader from "@/components/AdminHeader";
 import Sidebar from "@/components/Sidebar";
 import { getCohortById, updateAdminCohort } from "@/services/admin.services";
+import { programRowDefaultName } from "@/app/admin/cohorts/programRowLabels";
 
 type InvestmentRow = {
   titleName: string;
@@ -461,7 +462,13 @@ export default function EditCohortClient() {
   const addProgram = () => {
     setForm((current) => ({
       ...current,
-      programs: [...current.programs, { ...emptyProgramRow }],
+      programs: [
+        ...current.programs,
+        {
+          ...emptyProgramRow,
+          programName: programRowDefaultName(current.programs.length),
+        },
+      ],
     }));
   };
 
@@ -833,13 +840,14 @@ export default function EditCohortClient() {
                   <span>Price </span>
                   <div className="admin-money-input" style={{ display: "flex" }}>
                     <input
-                      inputMode="text"
+                      inputMode="numeric"
                       value={form.price}
                       disabled={isLoading}
                       aria-label="Price"
-                      placeholder="$1,400–$1,500"
-                      onChange={(event) => updateField("price", event.target.value
-                      )}
+                      onChange={(event) => {
+                        const value = event.target.value.replace(/\D/g, "");
+                        updateField("price", value);
+                      }}
                     />
                   </div>
                 </label>
