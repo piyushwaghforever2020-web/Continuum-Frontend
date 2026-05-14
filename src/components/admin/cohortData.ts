@@ -20,6 +20,7 @@ export type CohortItem = {
   seatsFilled: number;
   seatLimit: number;
   status: CohortStatus;
+  sync_status?: string;
   is_active?: boolean;
   refundPolicy: string;
   revenue: number;

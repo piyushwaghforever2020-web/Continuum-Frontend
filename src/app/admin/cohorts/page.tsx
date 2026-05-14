@@ -15,18 +15,8 @@ import AdminTable, {
   AdminTableColumn,
   AdminToggle,
 } from "@/components/admin/AdminTable";
-import {
-  CohortItem,
-  formatCurrency,
-} from "@/components/admin/cohortData";
-import {
-  FiEdit2,
-  FiEye,
-  FiPlus,
-  FiTrash2,
-  FiUsers,
-  FiX,
-} from "react-icons/fi";
+import { CohortItem, formatCurrency } from "@/components/admin/cohortData";
+import { FiEdit2, FiEye, FiPlus, FiTrash2, FiUsers, FiX } from "react-icons/fi";
 
 type CohortFormData = {
   cohortName: string;
@@ -96,6 +86,7 @@ function normalizeCohortsResponse(response: any): CohortItem[] {
     seatsFilled: item.seats_filled ?? 0,
     refundPolicy: item.refund_policy ?? "",
     status: normalizeStatus(item.status),
+    sync_status: item.sync_status,
     is_active: item.is_active ?? true,
   }));
 }
@@ -131,13 +122,26 @@ function CreateCohortModal({
   if (!isOpen) return null;
 
   return (
-    <div className="admin-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="create-cohort-title">
+    <div
+      className="admin-modal-backdrop"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="create-cohort-title"
+    >
       <div className="admin-modal admin-modal--form">
-        <button type="button" className="admin-modal__close" onClick={onClose} aria-label="Close modal">
+        <button
+          type="button"
+          className="admin-modal__close"
+          onClick={onClose}
+          aria-label="Close modal"
+        >
           <FiX size={18} />
         </button>
 
-        <h2 id="create-cohort-title" className="admin-modal__title admin-modal__title--left">
+        <h2
+          id="create-cohort-title"
+          className="admin-modal__title admin-modal__title--left"
+        >
           {mode === "create" ? "Create Cohort" : "Edit Cohort"}
         </h2>
 
@@ -154,7 +158,9 @@ function CreateCohortModal({
               value={form.cohortName}
               onChange={(event) => onChange("cohortName", event.target.value)}
             />
-            {errors.cohortName ? <p className="admin-form-field__error">{errors.cohortName}</p> : null}
+            {errors.cohortName ? (
+              <p className="admin-form-field__error">{errors.cohortName}</p>
+            ) : null}
           </label>
 
           <label className="admin-form-field">
@@ -164,7 +170,9 @@ function CreateCohortModal({
               value={form.description}
               onChange={(event) => onChange("description", event.target.value)}
             />
-            {errors.description ? <p className="admin-form-field__error">{errors.description}</p> : null}
+            {errors.description ? (
+              <p className="admin-form-field__error">{errors.description}</p>
+            ) : null}
           </label>
 
           <div className="admin-form-row">
@@ -175,7 +183,9 @@ function CreateCohortModal({
                 value={form.startDate}
                 onChange={(event) => onChange("startDate", event.target.value)}
               />
-              {errors.startDate ? <p className="admin-form-field__error">{errors.startDate}</p> : null}
+              {errors.startDate ? (
+                <p className="admin-form-field__error">{errors.startDate}</p>
+              ) : null}
             </label>
             <label className="admin-form-field">
               <span>End Date</span>
@@ -184,10 +194,10 @@ function CreateCohortModal({
                 value={form.endDate}
                 onChange={(event) => onChange("endDate", event.target.value)}
               />
-              {errors.endDate ? <p className="admin-form-field__error">{errors.endDate}</p> : null}
+              {errors.endDate ? (
+                <p className="admin-form-field__error">{errors.endDate}</p>
+              ) : null}
             </label>
-
-
           </div>
           <div className="admin-form-row">
             <label className="admin-form-field">
@@ -196,7 +206,9 @@ function CreateCohortModal({
                 value={form.price}
                 onChange={(event) => onChange("price", event.target.value)}
               />
-              {errors.price ? <p className="admin-form-field__error">{errors.price}</p> : null}
+              {errors.price ? (
+                <p className="admin-form-field__error">{errors.price}</p>
+              ) : null}
             </label>
             <label className="admin-form-field">
               <span>Seat Limit</span>
@@ -204,7 +216,9 @@ function CreateCohortModal({
                 value={form.seatLimit}
                 onChange={(event) => onChange("seatLimit", event.target.value)}
               />
-              {errors.seatLimit ? <p className="admin-form-field__error">{errors.seatLimit}</p> : null}
+              {errors.seatLimit ? (
+                <p className="admin-form-field__error">{errors.seatLimit}</p>
+              ) : null}
             </label>
           </div>
           <label className="admin-form-field">
@@ -214,10 +228,14 @@ function CreateCohortModal({
               value={form.refundPolicy}
               onChange={(event) => onChange("refundPolicy", event.target.value)}
             />
-            {errors.refundPolicy ? <p className="admin-form-field__error">{errors.refundPolicy}</p> : null}
+            {errors.refundPolicy ? (
+              <p className="admin-form-field__error">{errors.refundPolicy}</p>
+            ) : null}
           </label>
 
-          {submitError ? <p className="admin-form-submit-error">{submitError}</p> : null}
+          {submitError ? (
+            <p className="admin-form-submit-error">{submitError}</p>
+          ) : null}
 
           <div className="admin-modal__actions admin-modal__actions--form">
             <button
@@ -254,7 +272,10 @@ export default function CohortsPage() {
   const [selectedCohortId, setSelectedCohortId] = useState<string | null>(null);
   const [togglingId, setTogglingId] = useState<string | null>(null);
 
-  const handleToggleCohortStatus = async (id: string, currentStatus: boolean) => {
+  const handleToggleCohortStatus = async (
+    id: string,
+    currentStatus: boolean,
+  ) => {
     try {
       setTogglingId(id);
       const newStatus = !currentStatus;
@@ -279,7 +300,9 @@ export default function CohortsPage() {
 
       setCohortRows(normalizedRows);
     } catch (error) {
-      setCohortsError(error instanceof Error ? error.message : "Failed to load cohorts");
+      setCohortsError(
+        error instanceof Error ? error.message : "Failed to load cohorts",
+      );
     } finally {
       setIsLoadingCohorts(false);
     }
@@ -305,13 +328,18 @@ export default function CohortsPage() {
   const validateForm = (values: CohortFormData) => {
     const nextErrors: CohortFormErrors = {};
 
-    if (!values.cohortName.trim()) nextErrors.cohortName = "This field is required";
-    if (!values.description.trim()) nextErrors.description = "This field is required";
-    if (!values.startDate.trim()) nextErrors.startDate = "This field is required";
+    if (!values.cohortName.trim())
+      nextErrors.cohortName = "This field is required";
+    if (!values.description.trim())
+      nextErrors.description = "This field is required";
+    if (!values.startDate.trim())
+      nextErrors.startDate = "This field is required";
     if (!values.endDate.trim()) nextErrors.endDate = "This field is required";
     if (!values.price.trim()) nextErrors.price = "This field is required";
-    if (!values.seatLimit.trim()) nextErrors.seatLimit = "This field is required";
-    if (!values.refundPolicy.trim()) nextErrors.refundPolicy = "This field is required";
+    if (!values.seatLimit.trim())
+      nextErrors.seatLimit = "This field is required";
+    if (!values.refundPolicy.trim())
+      nextErrors.refundPolicy = "This field is required";
 
     return nextErrors;
   };
@@ -369,7 +397,7 @@ export default function CohortsPage() {
           ? error.message
           : mode === "edit"
             ? "Failed to update cohort"
-            : "Failed to create cohort"
+            : "Failed to create cohort",
       );
     } finally {
       setIsSubmitting(false);
@@ -382,7 +410,9 @@ export default function CohortsPage() {
         key: "name",
         header: "Cohort Name",
         className: "admin-table-col-name",
-        render: (row) => <span className="admin-table-primary">{row.name}</span>,
+        render: (row) => (
+          <span className="admin-table-primary">{row.name}</span>
+        ),
       },
       {
         key: "startDate",
@@ -405,6 +435,35 @@ export default function CohortsPage() {
         key: "seats",
         header: "Enrolled / Total",
         render: (row) => `${row.seatsFilled} / ${row.seatLimit}`,
+      },
+      {
+        key: "status",
+        header: "Status",
+        render: (row: CohortItem) => {
+          const status = row.sync_status?.toLowerCase();
+
+          const statusColors: Record<string, string> = {
+            active: "#2BAB6F",
+            full: "#D9AC26",
+            closed: "#DC2828",
+            open: "#2563EB",
+            draft: "#9333EA",
+            archived: "#6B7280",
+            inactive: "#0041B1",
+          };
+
+          const formattedStatus = status
+            ? status.charAt(0).toUpperCase() + status.slice(1)
+            : "Inactive";
+
+          return (
+            <AdminStatusBadge
+              customColor={statusColors[status || "inactive"] || "#9CA3AF"}
+            >
+              {formattedStatus}
+            </AdminStatusBadge>
+          );
+        },
       },
       // {
       //   key: "status",
@@ -445,14 +504,16 @@ export default function CohortsPage() {
             <AdminToggle
               checked={row.is_active ?? true}
               disabled={togglingId === row.id}
-              onChange={() => handleToggleCohortStatus(row.id, row.is_active ?? true)}
+              onChange={() =>
+                handleToggleCohortStatus(row.id, row.is_active ?? true)
+              }
               ariaLabel={`Toggle active status for ${row.name}`}
             />
           </div>
         ),
       },
     ],
-    []
+    [],
   );
 
   return (
@@ -468,7 +529,7 @@ export default function CohortsPage() {
               <div>
                 <h2 className="admin-page-title">Cohorts</h2>
               </div>
-           
+
               <button
                 type="button"
                 className="admin-table-button admin-table-button--primary"
@@ -478,7 +539,7 @@ export default function CohortsPage() {
                   <FiPlus size={14} />
                   <span>Create Cohort</span>
                 </Link>
-              </button> 
+              </button>
             </section>
 
             <AdminTable
