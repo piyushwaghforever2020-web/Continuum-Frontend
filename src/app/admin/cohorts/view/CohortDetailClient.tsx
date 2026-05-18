@@ -54,6 +54,9 @@ type CohortDetail = {
   seatLimit: number;
   status: CohortStatus;
   is_active?: boolean;
+  sync_status?: string;
+  program_overview?: string;
+  endDate?: string;
   /** Legacy single string from API */
   refundPolicy: string;
   /** New shape: [{ program, price_per_seat }] */
@@ -98,11 +101,20 @@ const initialForm: CohortFormData = {
   refundPolicy: "",
 };
 
-function getStatusColor(status: string) {
+function getStatusColor(status?: string) {
+  const statusColors: Record<string, string> = {
+    active: "#2BAB6F",
+    full: "#D9AC26",
+    closed: "#DC2828",
+    open: "#2563EB",
+    draft: "#9333EA",
+    archived: "#6B7280",
+    inactive: "#0041B1",
+  };
+
   const s = String(status).toLowerCase();
-  if (s === "active") return "#2BAB6F";
-  if (s === "full") return "#F48C25";
-  return "#DC2828";
+
+  return statusColors[s] || "#DC2828";
 }
 
 function normalizeStatus(value: unknown): CohortStatus {
@@ -211,11 +223,14 @@ function normalizeCohort(payload: unknown): CohortDetail | null {
     name: String(raw.name ?? raw.title ?? raw.cohortName ?? "Untitled Cohort"),
     description: String(raw.description ?? raw.overview ?? "No description available."),
     startDate: String(raw.startDate ?? raw.start_date ?? "-"),
+    endDate: String(raw.endDate ?? raw.end_date ?? "-"),
     price: String(raw.price ?? raw.amount ?? 0),
     seatsFilled: Number(raw.seatsFilled ?? raw.seats_filled ?? raw.filledSeats ?? 0),
     seatLimit: Number(raw.seatLimit ?? raw.seat_limit ?? raw.totalSeats ?? 0),
     status: normalizeStatus(raw.status),
+    sync_status: String(raw.sync_status ?? raw.syncStatus ?? "").toLowerCase(),
     is_active: raw.is_active !== undefined ? Boolean(raw.is_active) : true,
+    program_overview: String(raw.program_overview ?? raw.program_overview ?? ""),
     refundPolicy:
       legacyRefund ||
       (refundDeferralPolicy.length === 0 ? "No refund policy provided." : ""),
@@ -709,54 +724,7 @@ export default function CohortDetailClient() {
     []
   );
 
-  const cohortColumns = useMemo<AdminTableColumn<CohortListItem>[]>(
-    () => [
-      { key: "name", header: "Cohort Name", className: "admin-table-col-name", render: (row) => <span className="admin-table-primary">{row.name}</span> },
-      { key: "startDate", header: "Start Date", className: "admin-table-col-name", render: (row) => <span className="admin-muted">{row.startDate}</span> },
-      { key: "price", header: "Price", className: "admin-table-col-name", render: (row) => formatCurrency(row.price) },
-      { key: "seats", header: "Seats", className: "admin-table-col-name", render: (row) => `${row.seatsFilled} / ${row.seatLimit}` },
-      {
-        key: "status",
-        header: "Status",
-        render: (row) => <AdminStatusBadge customColor={getStatusColor(row.status)}>{row.status}</AdminStatusBadge>,
-      },
-      {
-        key: "action",
-        header: "Action",
-        className: "w-[300px]",
-        render: (row) => (
-          <div className="admin-row-actions">
-            <Link
-              href={`/admin/cohorts/view?id=${encodeURIComponent(row.id)}`}
-              className="admin-row-actions__button"
-              aria-label={`View ${row.name}`}
-            >
-              <FiEye size={14} />
-            </Link>
-            <Link
-              href={`/admin/cohorts/edit?id=${encodeURIComponent(row.id)}`}
-              className="admin-row-actions__button"
-              aria-label={`Edit ${row.name}`}
-            >
-              <FiEdit2 size={14} />
-            </Link>
-            <Link className="admin-row-actions__button"
-              href={`/admin/participants?cohort_id=${encodeURIComponent(row.id)}`}
-              aria-label={`Participants in ${row.name}`}>
-              <FiUsers size={14} />
-            </Link>
-            <AdminToggle
-              checked={row.is_active ?? true}
-              disabled={togglingId === row.id}
-              onChange={() => handleToggleCohortStatus(row.id, row.is_active ?? true)}
-              ariaLabel={`Toggle active status for ${row.name}`}
-            />
-          </div>
-        ),
-      },
-    ],
-    []
-  );
+ 
 
   return (
     <div className="admin-page">
@@ -775,7 +743,11 @@ export default function CohortDetailClient() {
                 <div className="admin-detail-hero__copy">
                   <div className="admin-detail-hero__heading">
                     <h2 className="admin-page-title">{loading ? "Loading cohort..." : cohort?.name ?? "Cohort Details"}</h2>
-                    {!loading && cohort ? <AdminStatusBadge customColor={getStatusColor(cohort.status)}>{cohort.status}</AdminStatusBadge> : null}
+                  {!loading && cohort ? (
+  <AdminStatusBadge customColor={getStatusColor(cohort?.sync_status)}>
+    {cohort?.sync_status}
+  </AdminStatusBadge>
+) : null}
                   </div>
                 </div>
               </div>
@@ -841,9 +813,12 @@ export default function CohortDetailClient() {
             <section className="admin-grid admin-grid--detail-cards">
               <article className="admin-card admin-info-card">
                 <h3 className="admin-section-title">Program Overview</h3>
-                <p className="admin-info-card__text">{cohort?.description ?? (loading ? "Loading details..." : "No description available.")}</p>
+                <p className="admin-info-card__text">{cohort?.program_overview ?? (loading ? "Loading details..." : "No program description available.")}</p>
                 <p className="admin-info-card__text">
                   Start Date: <span className="admin-info-card__meta">{cohort?.startDate ?? "-"}</span>
+                </p>
+                 <p className="admin-info-card__text">
+                  End Date: <span className="admin-info-card__meta">{cohort?.endDate ?? "-"}</span>
                 </p>
               </article>
 
@@ -930,26 +905,7 @@ export default function CohortDetailClient() {
               }
             />
 
-            {/* <section className="admin-page-intro mt-5">
-              <div>
-                <h2 className="admin-page-title">Cohorts</h2>
-              </div>
-
-              <button type="button" className="admin-table-button admin-table-button--primary" onClick={openCreateModal}>
-                <FiPlus size={14} />
-                <span>Create Cohort</span>
-              </button>
-            </section>
-
-            <AdminTable
-              title="Cohorts"
-              columns={cohortColumns}
-              rows={cohortRows}
-              showToolbar={false}
-              footer={
-                isLoadingCohorts ? "Loading cohorts..." : cohortsError ? cohortsError : `Showing ${cohortRows.length} cohorts`
-              }
-            /> */}
+        
           </div>
         </main>
       </div>

@@ -41,6 +41,9 @@ type Cohort = {
   programs?: ProgramItem[];
   mostSelected?: boolean;
   is_enrollment_open?: boolean;
+  /** When "full" or "closed", apply is blocked and the button shows that state */
+  sync_status?: string;
+  syncStatus?: string;
 };
 
 type ProgramItem = {
@@ -59,6 +62,8 @@ type ProgramItem = {
   allocated_seats?: number | string;
   seats_filled?: number | string;
   is_full?: boolean;
+  sync_status?: string;
+  syncStatus?: string;
 };
 
 type InvestmentTier = {
@@ -272,9 +277,28 @@ export default function RegistrationPage() {
   const isEnrollmentOpen = (cohort: Cohort) =>
     normalizeBoolean(cohort.is_enrollment_open, cohort.status === "active");
 
-  const getProgramDescription = (program: ProgramItem) => program.program_description 
+  const getNormalizedSyncStatus = (value: unknown) =>
+    String(value ?? "")
+      .trim()
+      .toLowerCase();
 
-  
+  const isApplyBlockedBySyncStatus = (status: string) =>
+    status === "full" || status === "closed";
+
+  const applyButtonLabelForSync = (status: string) =>
+    status === "closed" ? "Closed" : "Full";
+
+  const getProgramSyncStatus = (program: ProgramItem, cohort: Cohort) =>
+    getNormalizedSyncStatus(
+      program.sync_status ??
+        program.syncStatus ??
+        cohort.sync_status ??
+        cohort.syncStatus
+    );
+
+  const getCohortSyncStatus = (cohort: Cohort) =>
+    getNormalizedSyncStatus(cohort.sync_status ?? cohort.syncStatus);
+
   const getProgramButtonLabel = (program: ProgramItem) => {
     const programName = getProgramName(program);
     const match = programName.match(/program\s*([A-Za-z0-9]+)/i);
@@ -402,6 +426,12 @@ export default function RegistrationPage() {
                 const showInvestmentBestFor = hasInvestmentBestFor(investmentTiers);
                 const canEnroll = isEnrollmentOpen(cohort);
                 const seatLimitText = getSeatLimitText(cohort, programs);
+                const cohortSyncStatus = getCohortSyncStatus(cohort);
+                const cohortSyncBlocksApply = isApplyBlockedBySyncStatus(cohortSyncStatus);
+                const singleApplyDisabled = !canEnroll || cohortSyncBlocksApply;
+                const singleApplyLabel = cohortSyncBlocksApply
+                  ? applyButtonLabelForSync(cohortSyncStatus)
+                  : "Apply";
 
                 return (
                   <div
@@ -603,26 +633,38 @@ export default function RegistrationPage() {
                           {isMultiProgram && programs.length > 0 ? (
                             programs.map((program) => {
                               const programName = getProgramName(program);
-                              const disabled = !canEnroll || Boolean(program.is_full);
+                              const syncStatus = getProgramSyncStatus(program, cohort);
+                              const syncBlocksApply = isApplyBlockedBySyncStatus(syncStatus);
+                              const disabled =
+                                !canEnroll ||
+                                Boolean(program.is_full) ||
+                                syncBlocksApply;
+                              const buttonLabel = syncBlocksApply
+                                ? applyButtonLabelForSync(syncStatus)
+                                : getProgramButtonLabel(program);
 
                               return (
                                 <button
-                                  className={`${styles.buttonPrimary} ${styles.part} w-full`}
+                                  className={`${styles.buttonPrimary} ${styles.part} w-full ${
+                                    disabled ? "cursor-not-allowed-button" : ""
+                                  }`}
                                   disabled={disabled}
                                   key={String(program.program_id ?? program.id ?? programName)}
                                   onClick={() => openEnrollmentModal(cohort, programName, program)}
                                 >
-                                  {getProgramButtonLabel(program)}
+                                  {buttonLabel}
                                 </button>
                               );
                             })
                           ) : (
                             <button
-                              className={`${styles.buttonPrimary} ${styles.part} !px-2 w-full`}
-                              disabled={!canEnroll}
+                              className={`${styles.buttonPrimary} ${styles.part} !px-2 w-full ${
+                                singleApplyDisabled ? "cursor-not-allowed-button " : ""
+                              }`}
+                              disabled={singleApplyDisabled}
                               onClick={() => openEnrollmentModal(cohort, cohort.name)}
                             >
-                              Apply
+                              {singleApplyLabel}
                             </button>
                           )}
                         </div>

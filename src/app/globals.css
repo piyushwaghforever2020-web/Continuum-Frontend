@@ -322,6 +322,10 @@ a {
   transition: all 0.2s ease;
 }
 
+.cursor-not-allowed-button {
+  cursor: not-allowed !important;
+}
+
 /* Focus state (same as your other inputs) */
 .PhoneInput:focus-within {
   border-color: var(--color-burgundy);

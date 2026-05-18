@@ -40,6 +40,7 @@ type EditCohortForm = {
   startDate: string;
   endDate: string;
   timeCommitment: string;
+  format: string;
   liveSessions: string;
   workshop: string;
   cohortSize: string;
@@ -80,6 +81,7 @@ const initialForm: EditCohortForm = {
   startDate: "",
   endDate: "",
   timeCommitment: "",
+  format: "",
   liveSessions: "",
   workshop: "",
   cohortSize: "",
@@ -258,6 +260,7 @@ export default function CreateCohortClient() {
       description: form.cohortDescription.trim(),
       program_overview: form.programOverview.trim(),
       time_commitment: form.timeCommitment.trim(),
+      format: form.format.trim(),
       start_date: form.startDate,
       end_date: form.endDate,
       price: form.price,
@@ -421,6 +424,16 @@ export default function CreateCohortClient() {
                     disabled={isLoading}
                     onChange={(event) =>
                       updateField("liveSessions", event.target.value)
+                    }
+                  />
+                </label>
+                <label className="admin-form-field">
+                  <span>Format</span>
+                  <input
+                    value={form.format}
+                    disabled={isLoading}
+                    onChange={(event) =>
+                      updateField("format", event.target.value)
                     }
                   />
                 </label>

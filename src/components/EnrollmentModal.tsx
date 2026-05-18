@@ -36,6 +36,8 @@ type Cohort = {
   name: string;
   is_active: boolean;
   programs?: ProgramItem[];
+  price?: number | string;
+  display_price?: string;
 };
 
 type ProgramItem = {
@@ -122,6 +124,17 @@ export default function EnrollmentModal({
   );
   const selectedCohortPrograms = selectedCohort?.programs ?? [];
 
+  const getCohortPriceDisplay = (cohort: Cohort | undefined) => {
+    if (!cohort) return "—";
+    const value = cohort.display_price ?? cohort.price;
+    if (value === undefined || value === null || value === "") return "$ 0 USD";
+    const text = String(value).trim();
+    if (text.includes("$") || text.toUpperCase().includes("USD")) return text;
+    return `$ ${text} USD`;
+  };
+
+  const step2FullPriceLabel = getCohortPriceDisplay(selectedCohort);
+
   //data prefill from labs model
   useEffect(() => {
     if (prefillData && cohorts.length > 0) {
@@ -169,6 +182,11 @@ export default function EnrollmentModal({
   };
 
   const handleCompleteEnrollment = async () => {
+    if (form.cohortId == null) {
+      setapiErrorEnrollment("Please select a cohort before completing payment.");
+      return;
+    }
+
     try {
       setLoadingEnrollment(true);
       setapiErrorEnrollment("");
@@ -178,7 +196,7 @@ export default function EnrollmentModal({
         program_id: form?.programId,
         // success_url: "http://coutinuum.codingserver.com/success-payment/",
         // cancel_url: "http://coutinuum.codingserver.com/registration/",
-        success_url : `${process.env.NEXT_PUBLIC_STRIPE_URL}success-payment/`,
+        success_url : `${process.env.NEXT_PUBLIC_STRIPE_URL}success-payment?id=${form?.cohortId}`,
         cancel_url : `${process.env.NEXT_PUBLIC_STRIPE_URL}registration/`,
 
       };
@@ -231,17 +249,24 @@ export default function EnrollmentModal({
         },
       };
 
-      await axios.post(
+      const response = await axios.post(
         `${process.env.NEXT_PUBLIC_API_BASE_URL}/application`,
         payload,
       );
+
+      if (response?.data?.success === false) {
+        setApiError(response?.data?.message || "Something went wrong");
+        return;
+      }
 
       // ✅ success
       // setShowSuccess(true);
       setStep(2);
     } catch (error: any) {
       const message =
-        error?.response?.data?.data?.details?.[0] || "Something went wrong";
+        error?.response?.data?.message ||
+        error?.response?.data?.data?.details?.[0] ||
+        "Something went wrong";
       setApiError(message);
     } finally {
       setLoading(false);
@@ -822,7 +847,7 @@ export default function EnrollmentModal({
                 <div
                   className={`font-chivo font-bold  leading-8 text-center text-md md:text-xl ${paymentMethod === "payFull" ? " text-[#F1F1F1]" : "text-[var(--color-nearBlack)]"}`}
                 >
-                  $1300 USD
+                  {step2FullPriceLabel}
                 </div>
               </div>
 
