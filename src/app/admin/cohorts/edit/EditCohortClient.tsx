@@ -525,6 +525,7 @@ export default function EditCohortClient() {
           price: row.price,
           best_for: row.whatYouGet.trim(),
         })),
+        is_draft:false,
         scarcity_text: form.ctaDescription.trim(),
         display_price: form.price,
       };

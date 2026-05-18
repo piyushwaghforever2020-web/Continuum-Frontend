@@ -7,6 +7,7 @@ import { useAdminLogin } from "@/hooks/useAdminLogin";
 
 export default function AdminLogin() {
   const { handleLogin, loading, error: apiError } = useAdminLogin();
+  const [apiLoading , setApiLoading]  = useState(false);
   const router = useRouter();
 
   const [form, setForm] = useState({
@@ -46,18 +47,25 @@ export default function AdminLogin() {
     return valid;
   };
 
-  // ✅ Submit Handler
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!validate()) return;
+    setApiLoading(true);
 
     try {
       await handleLogin(form.email, form.password);
+      
       router.replace("/admin/dashboard");
-
+      setApiLoading(false);
+      
     } catch (err) {
+    setApiLoading(false);
+
       // handled in hook
+    }
+    finally {
+      setApiLoading(false);
     }
   };
 
@@ -177,14 +185,14 @@ export default function AdminLogin() {
               <button
                 type="submit"
 
-                disabled={loading}
+                disabled={apiLoading || loading}
                 className="w-full font-semibold text-[14px] bg-[var(--color-burgundy)] font-chivo text-white rounded-[14px] transition-all hover:opacity-90 active:scale-[0.99] py-[12px] px-[13px] capitalize"
                 style={{
                   border: "none",
                   cursor: "pointer",
                 }}
               >
-                {loading ? "Logging in..." : "Login"}
+                {apiLoading || loading ? "Logging in..." : "Login"}
               </button>
             </form>
           </div>
