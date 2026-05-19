@@ -15,12 +15,16 @@ interface WaitlistModalProps {
   onClose: () => void;
 }
 
-const cohorts = [
-  "Leading in Flat, AI-Enabled Organizations",
-  "AI Automation for Enterprise Transformation Leaders",
-  "Leading Complex Projects",
-  "Enterprise Transformation Lab",
-];
+const EVENT_TYPE_OPTIONS = [
+  { label: "Keynote", value: "keynote" },
+  { label: "Panel", value: "panel" },
+  { label: "Fireside chat", value: "fireside_chat" },
+  { label: "Executive session", value: "executive_session" },
+  { label: "Other", value: "other" },
+] as const;
+
+const getEventTypeValue = (label: string) =>
+  EVENT_TYPE_OPTIONS.find((option) => option.label === label)?.value ?? "";
 
 export default function InviteToSpeakModal({ isOpen, onClose }: WaitlistModalProps) {
   const [submitted, setSubmitted] = useState(false);
@@ -95,7 +99,7 @@ export default function InviteToSpeakModal({ isOpen, onClose }: WaitlistModalPro
           email: form.email.trim(),
           organization: form.organization.trim(),
           event_date_or_timeframe: form.eventDateTimeframe.trim(),
-          event_type: form.eventType.trim().toLowerCase(),
+          event_type: getEventTypeValue(form.eventType),
           audience_size: form.audienceSize.trim(),
           win_description: form.winDesc.trim(),
         }
@@ -411,21 +415,11 @@ export default function InviteToSpeakModal({ isOpen, onClose }: WaitlistModalPro
               {optionBox && (
                 <div className="absolute w-[88%] ">
                   <div className="relative z-50 mt-2 bg-white rounded-[18px] shadow-lg border border-[#E5E7EB] overflow-hidden px-5">
-                    {[
-                      "Keynote",
-                      "Panel",
-                      "Fireside chat",
-                      "Executive session",
-                      "Other",
-                    ].map((item, index) => (
+                    {EVENT_TYPE_OPTIONS.map((option, index) => (
                       <div
-                        key={item}
-                        // onClick={() => {
-                        //   setForm((p) => ({ ...p, eventType: item }));
-                        //   setOptionBox(false);
-                        // }}
+                        key={option.value}
                         onClick={() => {
-                          setForm((p) => ({ ...p, eventType: item }));
+                          setForm((p) => ({ ...p, eventType: option.label }));
                           setOptionBox(false);
                           if (submitError) setSubmitError("");
 
@@ -437,7 +431,7 @@ export default function InviteToSpeakModal({ isOpen, onClose }: WaitlistModalPro
                           } ${index === 0 ? "pt-4" : " "
                           }`}
                       >
-                        {item}
+                        {option.label}
                       </div>
                     ))}
                   </div>
