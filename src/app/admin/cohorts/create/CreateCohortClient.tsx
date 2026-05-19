@@ -52,6 +52,33 @@ type EditCohortForm = {
   programs: ProgramRow[];
 };
 
+type CreateCohortFormErrors = Record<string, string>;
+
+const requiredCreateCohortFields = new Set<keyof EditCohortForm>([
+  "cohortTitle",
+  "cohortSize",
+  "startDate",
+  "endDate",
+  "price",
+]);
+
+const requiredCreateCohortSubmitFields = new Set<keyof EditCohortForm>([
+  "cohortTitle",
+  "cohortDescription",
+  "programOverview",
+  "startDate",
+  "endDate",
+  "liveSessions",
+  "format",
+  "timeCommitment",
+  "workshop",
+  "cohortSize",
+  "ctaDescription",
+  "price",
+]);
+
+const requiredMessage = "This field is required";
+
 const emptyInvestmentRow: InvestmentRow = {
   titleName: "",
   price: "",
@@ -107,6 +134,7 @@ function digitsOnly(value: string) {
 export default function CreateCohortClient() {
   const router = useRouter();
   const [form, setForm] = useState<EditCohortForm>(initialForm);
+  const [formErrors, setFormErrors] = useState<CreateCohortFormErrors>({});
   const [isLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDraftRequest, setIsDraftRequest] = useState(false);
@@ -115,6 +143,9 @@ export default function CreateCohortClient() {
 
   const updateField = (field: keyof EditCohortForm, value: string) => {
     setForm((current) => ({ ...current, [field]: value }));
+    if (requiredCreateCohortFields.has(field) || requiredCreateCohortSubmitFields.has(field)) {
+      setFormErrors((current) => ({ ...current, [field]: "" }));
+    }
     setSubmitMessage("");
   };
 
@@ -134,6 +165,10 @@ export default function CreateCohortClient() {
         rowIndex === index ? { ...row, [field]: value } : row
       ),
     }));
+    setFormErrors((current) => ({
+      ...current,
+      [`investments.${index}.${field}`]: "",
+    }));
     setSubmitMessage("");
   };
 
@@ -144,6 +179,7 @@ export default function CreateCohortClient() {
         rowIndex === index ? { value } : row
       ),
     }));
+    setFormErrors((current) => ({ ...current, [`leaveWith.${index}.value`]: "" }));
     setSubmitMessage("");
   };
 
@@ -158,6 +194,10 @@ export default function CreateCohortClient() {
         rowIndex === index ? { ...row, [field]: value } : row
       ),
     }));
+    setFormErrors((current) => ({
+      ...current,
+      [`programs.${index}.${field}`]: "",
+    }));
     setSubmitMessage("");
   };
 
@@ -171,6 +211,10 @@ export default function CreateCohortClient() {
       refundDeferralPolicy: current.refundDeferralPolicy.map((row, rowIndex) =>
         rowIndex === index ? { ...row, [field]: value } : row
       ),
+    }));
+    setFormErrors((current) => ({
+      ...current,
+      [`refundDeferralPolicy.${index}.${field}`]: "",
     }));
     setSubmitMessage("");
   };
@@ -300,7 +344,70 @@ export default function CreateCohortClient() {
     return payload;
   };
 
+  const validateForm = (mode: "draft" | "submit") => {
+    const nextErrors: CreateCohortFormErrors = {};
+
+    const fieldsToValidate =
+      mode === "draft" ? requiredCreateCohortFields : requiredCreateCohortSubmitFields;
+
+    fieldsToValidate.forEach((field) => {
+      const value = form[field];
+      if (typeof value === "string" && !value.trim()) {
+        nextErrors[field] = requiredMessage;
+      }
+    });
+
+    if (mode === "submit") {
+      form.refundDeferralPolicy.forEach((row, index) => {
+        if (!row.program.trim()) {
+          nextErrors[`refundDeferralPolicy.${index}.program`] = requiredMessage;
+        }
+        if (!row.pricePerSeat.trim()) {
+          nextErrors[`refundDeferralPolicy.${index}.pricePerSeat`] = requiredMessage;
+        }
+      });
+
+      form.investments.forEach((row, index) => {
+        if (!row.titleName.trim()) {
+          nextErrors[`investments.${index}.titleName`] = requiredMessage;
+        }
+        if (!row.price.trim()) {
+          nextErrors[`investments.${index}.price`] = requiredMessage;
+        }
+        if (!row.whatYouGet.trim()) {
+          nextErrors[`investments.${index}.whatYouGet`] = requiredMessage;
+        }
+      });
+
+      form.leaveWith.forEach((row, index) => {
+        if (!row.value.trim()) {
+          nextErrors[`leaveWith.${index}.value`] = requiredMessage;
+        }
+      });
+
+      if (form.hasMultiProgram) {
+        form.programs.forEach((row, index) => {
+          if (!row.programName.trim()) {
+            nextErrors[`programs.${index}.programName`] = requiredMessage;
+          }
+          if (!row.programDescription.trim()) {
+            nextErrors[`programs.${index}.programDescription`] = requiredMessage;
+          }
+        });
+      }
+    }
+
+    setFormErrors(nextErrors);
+    return Object.keys(nextErrors).length === 0;
+  };
+
   const submitCohort = async (isDraft: boolean) => {
+    if (!validateForm(isDraft ? "draft" : "submit")) {
+      setError("");
+      setSubmitMessage("");
+      return;
+    }
+
     try {
       setIsSubmitting(true);
       setIsDraftRequest(isDraft);
@@ -365,6 +472,9 @@ export default function CreateCohortClient() {
                     updateField("cohortTitle", event.target.value)
                   }
                   />
+                {formErrors.cohortTitle ? (
+                  <p className="admin-form-field__error">{formErrors.cohortTitle}</p>
+                ) : null}
               </label>
               <label className="admin-form-field">
                 <span>Cohort Description</span>
@@ -376,6 +486,9 @@ export default function CreateCohortClient() {
                     updateField("cohortDescription", event.target.value)
                   }
                   />
+                {formErrors.cohortDescription ? (
+                  <p className="admin-form-field__error">{formErrors.cohortDescription}</p>
+                ) : null}
               </label>
               <label className="admin-form-field">
                 <span>Program Overview</span>
@@ -387,6 +500,9 @@ export default function CreateCohortClient() {
                     updateField("programOverview", event.target.value)
                   }
                   />
+                {formErrors.programOverview ? (
+                  <p className="admin-form-field__error">{formErrors.programOverview}</p>
+                ) : null}
               </label>
                   </div>
             </section>
@@ -405,6 +521,9 @@ export default function CreateCohortClient() {
                       updateField("startDate", event.target.value)
                     }
                   />
+                  {formErrors.startDate ? (
+                    <p className="admin-form-field__error">{formErrors.startDate}</p>
+                  ) : null}
                 </label>
                 <label className="admin-form-field">
                   <span>End date </span>
@@ -416,6 +535,9 @@ export default function CreateCohortClient() {
                       updateField("endDate", event.target.value)
                     }
                   />
+                  {formErrors.endDate ? (
+                    <p className="admin-form-field__error">{formErrors.endDate}</p>
+                  ) : null}
                 </label>
                 <label className="admin-form-field">
                   <span>Live sessions</span>
@@ -426,6 +548,9 @@ export default function CreateCohortClient() {
                       updateField("liveSessions", event.target.value)
                     }
                   />
+                  {formErrors.liveSessions ? (
+                    <p className="admin-form-field__error">{formErrors.liveSessions}</p>
+                  ) : null}
                 </label>
                 <label className="admin-form-field">
                   <span>Format</span>
@@ -436,6 +561,9 @@ export default function CreateCohortClient() {
                       updateField("format", event.target.value)
                     }
                   />
+                  {formErrors.format ? (
+                    <p className="admin-form-field__error">{formErrors.format}</p>
+                  ) : null}
                 </label>
                 <label className="admin-form-field">
                   <span>Time Commitment</span>
@@ -446,6 +574,9 @@ export default function CreateCohortClient() {
                       updateField("timeCommitment", event.target.value)
                     }
                   />
+                  {formErrors.timeCommitment ? (
+                    <p className="admin-form-field__error">{formErrors.timeCommitment}</p>
+                  ) : null}
                 </label>
                 <label className="admin-form-field">
                   <span>Workshop</span>
@@ -456,6 +587,9 @@ export default function CreateCohortClient() {
                       updateField("workshop", event.target.value)
                     }
                   />
+                  {formErrors.workshop ? (
+                    <p className="admin-form-field__error">{formErrors.workshop}</p>
+                  ) : null}
                 </label>
                  <label className="admin-form-field ">
                 <span>Seat limit</span>
@@ -468,6 +602,9 @@ export default function CreateCohortClient() {
                     updateField("cohortSize", digitsOnly(event.target.value))
                   }
                 />
+                {formErrors.cohortSize ? (
+                  <p className="admin-form-field__error">{formErrors.cohortSize}</p>
+                ) : null}
               </label>
               </div>
              
@@ -492,20 +629,30 @@ export default function CreateCohortClient() {
                 {form.refundDeferralPolicy.map((row, index) => (
                   <div className="admin-edit-table__row" key={`refund-policy-${index}`}>
                     <span className="admin-edit-table__index">{index + 1}</span>
-                    <input
-                      value={row.program}
-                      disabled={isLoading}
-                      onChange={(event) =>
-                        updateRefundDeferralPolicy(index, "program", event.target.value)
-                      }
-                    />
-                    <input
-                      value={row.pricePerSeat}
-                      disabled={isLoading}
-                      onChange={(event) =>
-                        updateRefundDeferralPolicy(index, "pricePerSeat", event.target.value)
-                      }
-                    />
+                    <div className="admin-edit-field-cell">
+                      <input
+                        value={row.program}
+                        disabled={isLoading}
+                        onChange={(event) =>
+                          updateRefundDeferralPolicy(index, "program", event.target.value)
+                        }
+                      />
+                      {formErrors[`refundDeferralPolicy.${index}.program`] ? (
+                        <p className="admin-form-field__error">{formErrors[`refundDeferralPolicy.${index}.program`]}</p>
+                      ) : null}
+                    </div>
+                    <div className="admin-edit-field-cell">
+                      <input
+                        value={row.pricePerSeat}
+                        disabled={isLoading}
+                        onChange={(event) =>
+                          updateRefundDeferralPolicy(index, "pricePerSeat", event.target.value)
+                        }
+                      />
+                      {formErrors[`refundDeferralPolicy.${index}.pricePerSeat`] ? (
+                        <p className="admin-form-field__error">{formErrors[`refundDeferralPolicy.${index}.pricePerSeat`]}</p>
+                      ) : null}
+                    </div>
                     <button
                       type="button"
                       className="admin-icon-button admin-edit-table__delete"
@@ -539,32 +686,47 @@ export default function CreateCohortClient() {
                 {form.investments.map((row, index) => (
                   <div className="admin-edit-table__row" key={`investment-${index}`}>
                     <span className="admin-edit-table__index">{index + 1}</span>
-                    <input
-                      value={row.titleName}
-                      disabled={isLoading}
-                      onChange={(event) =>
-                        updateInvestment(index, "titleName", event.target.value)
-                      }
-                    />
-                    <div className="admin-money-input admin-money-input--table" style={{ display: "flex" }}>
+                    <div className="admin-edit-field-cell">
                       <input
-                        inputMode="text"
-                        value={row.price}
+                        value={row.titleName}
                         disabled={isLoading}
-                        aria-label="Investment price"
-                        placeholder="$1,400–$1,500"
                         onChange={(event) =>
-                          updateInvestment(index, "price", event.target.value)
+                          updateInvestment(index, "titleName", event.target.value)
                         }
                       />
+                      {formErrors[`investments.${index}.titleName`] ? (
+                        <p className="admin-form-field__error">{formErrors[`investments.${index}.titleName`]}</p>
+                      ) : null}
                     </div>
-                    <input
-                      value={row.whatYouGet}
-                      disabled={isLoading}
-                      onChange={(event) =>
-                        updateInvestment(index, "whatYouGet", event.target.value)
-                      }
-                    />
+                    <div className="admin-edit-field-cell">
+                      <div className="admin-money-input admin-money-input--table" style={{ display: "flex" }}>
+                        <input
+                          inputMode="text"
+                          value={row.price}
+                          disabled={isLoading}
+                          aria-label="Investment price"
+                          placeholder="$1,400–$1,500"
+                          onChange={(event) =>
+                            updateInvestment(index, "price", event.target.value)
+                          }
+                        />
+                      </div>
+                      {formErrors[`investments.${index}.price`] ? (
+                        <p className="admin-form-field__error">{formErrors[`investments.${index}.price`]}</p>
+                      ) : null}
+                    </div>
+                    <div className="admin-edit-field-cell">
+                      <input
+                        value={row.whatYouGet}
+                        disabled={isLoading}
+                        onChange={(event) =>
+                          updateInvestment(index, "whatYouGet", event.target.value)
+                        }
+                      />
+                      {formErrors[`investments.${index}.whatYouGet`] ? (
+                        <p className="admin-form-field__error">{formErrors[`investments.${index}.whatYouGet`]}</p>
+                      ) : null}
+                    </div>
                     <button
                       type="button"
                       className="admin-icon-button admin-edit-table__delete"
@@ -591,11 +753,16 @@ export default function CreateCohortClient() {
                 {form.leaveWith.map((row, index) => (
                   <div className="admin-edit-repeat-list__row" key={`leave-with-${index}`}>
                     <span>{index + 1}</span>
-                    <input
-                      value={row.value}
-                      disabled={isLoading}
-                      onChange={(event) => updateLeaveWith(index, event.target.value)}
-                    />
+                    <div className="admin-edit-field-cell">
+                      <input
+                        value={row.value}
+                        disabled={isLoading}
+                        onChange={(event) => updateLeaveWith(index, event.target.value)}
+                      />
+                      {formErrors[`leaveWith.${index}.value`] ? (
+                        <p className="admin-form-field__error">{formErrors[`leaveWith.${index}.value`]}</p>
+                      ) : null}
+                    </div>
                     <button
                       type="button"
                       className="admin-icon-button admin-edit-table__delete"
@@ -624,6 +791,9 @@ export default function CreateCohortClient() {
                     updateField("ctaDescription", event.target.value)
                   }
                 />
+                {formErrors.ctaDescription ? (
+                  <p className="admin-form-field__error">{formErrors.ctaDescription}</p>
+                ) : null}
               </label>
               <div className="admin-edit-grid admin-edit-grid--compact">
                 <label className="admin-form-field">
@@ -640,6 +810,9 @@ export default function CreateCohortClient() {
                       }}
                     />
                   </div>
+                  {formErrors.price ? (
+                    <p className="admin-form-field__error">{formErrors.price}</p>
+                  ) : null}
                 </label>
               </div>
               </div>
@@ -678,20 +851,30 @@ export default function CreateCohortClient() {
                   {form.programs.map((row, index) => (
                     <div className="admin-edit-table__row" key={`program-${index}`}>
                       <span className="admin-edit-table__index">{index + 1}</span>
-                      <input
-                        value={row.programName}
-                        disabled={isLoading}
-                        onChange={(event) =>
-                          updateProgram(index, "programName", event.target.value)
-                        }
-                      />
-                      <input
-                        value={row.programDescription}
-                        disabled={isLoading}
-                        onChange={(event) =>
-                          updateProgram(index, "programDescription", event.target.value)
-                        }
-                      />
+                      <div className="admin-edit-field-cell">
+                        <input
+                          value={row.programName}
+                          disabled={isLoading}
+                          onChange={(event) =>
+                            updateProgram(index, "programName", event.target.value)
+                          }
+                        />
+                        {formErrors[`programs.${index}.programName`] ? (
+                          <p className="admin-form-field__error">{formErrors[`programs.${index}.programName`]}</p>
+                        ) : null}
+                      </div>
+                      <div className="admin-edit-field-cell">
+                        <input
+                          value={row.programDescription}
+                          disabled={isLoading}
+                          onChange={(event) =>
+                            updateProgram(index, "programDescription", event.target.value)
+                          }
+                        />
+                        {formErrors[`programs.${index}.programDescription`] ? (
+                          <p className="admin-form-field__error">{formErrors[`programs.${index}.programDescription`]}</p>
+                        ) : null}
+                      </div>
                       <button
                         type="button"
                         className="admin-icon-button admin-edit-table__delete"

@@ -23,6 +23,11 @@ export type EnquiriesQueryParams = {
   search?: string;
 };
 
+export type CohortsQueryParams = {
+  page?: number;
+  limit?: number;
+};
+
 export type DashboardGraphFilter = "weekly" | "monthly" | "yearly";
 
 export type DashboardGraphItem = {
@@ -128,8 +133,8 @@ export const exportAdminParticipants = async (params: Omit<ParticipantsQueryPara
   return res.data;
 };
 
-export const getAdminCohorts = async () => {
-  const res = await api.get("/admin/cohorts");
+export const getAdminCohorts = async (params: CohortsQueryParams = {}) => {
+  const res = await api.get(`/admin/cohorts${buildQuery(params)}`);
   return res.data;
 };
 

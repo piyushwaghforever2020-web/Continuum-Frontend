@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import AdminHeader from "@/components/AdminHeader";
 import Sidebar from "@/components/Sidebar";
 import {
@@ -29,6 +29,13 @@ type CohortFormData = {
 };
 
 type CohortFormErrors = Partial<Record<keyof CohortFormData, string>>;
+
+type CohortsPagination = {
+  totalRecords: number;
+  totalPages: number;
+  currentPage: number;
+  perPage: number;
+};
 
 const initialForm: CohortFormData = {
   cohortName: "",
@@ -72,23 +79,36 @@ function normalizeCohortItem(payload: unknown): CohortItem | null {
   };
 }
 
-function normalizeCohortsResponse(response: any): CohortItem[] {
-  const items = response?.data?.items ?? [];
+function normalizeCohortsResponse(response: any): {
+  items: CohortItem[];
+  pagination: CohortsPagination;
+} {
+  const data = response?.data ?? {};
+  const items = Array.isArray(data.items) ? data.items : [];
+  const pagination = data.pagination ?? {};
 
-  return items.map((item: any) => ({
-    id: String(item.id),
-    name: item.name,
-    description: item.description,
-    startDate: item.start_date,
-    endDate: item.end_date,
-    price: item.price,
-    seatLimit: item.seat_limit ?? 0,
-    seatsFilled: item.seats_filled ?? 0,
-    refundPolicy: item.refund_policy ?? "",
-    status: normalizeStatus(item.status),
-    sync_status: item.sync_status,
-    is_active: item.is_active ?? true,
-  }));
+  return {
+    items: items.map((item: any) => ({
+      id: String(item.id),
+      name: item.name,
+      description: item.description,
+      startDate: item.start_date,
+      endDate: item.end_date,
+      price: item.price,
+      seatLimit: item.seat_limit ?? 0,
+      seatsFilled: item.seats_filled ?? 0,
+      refundPolicy: item.refund_policy ?? "",
+      status: normalizeStatus(item.status),
+      sync_status: item.sync_status,
+      is_active: item.is_active ?? true,
+    })),
+    pagination: {
+      totalRecords: Number(pagination.total_records ?? items.length),
+      totalPages: Number(pagination.total_pages ?? 1),
+      currentPage: Number(pagination.current_page ?? 1),
+      perPage: Number(pagination.per_page ?? 10),
+    },
+  };
 }
 
 function getStatusColor(status: CohortItem["status"]) {
@@ -267,12 +287,42 @@ export default function CohortsPage() {
   const [submitError, setSubmitError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [cohortRows, setCohortRows] = useState<CohortItem[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [perPage, setPerPage] = useState(10);
+  const [cohortsPagination, setCohortsPagination] = useState<CohortsPagination>({
+    totalRecords: 0,
+    totalPages: 1,
+    currentPage: 1,
+    perPage: 10,
+  });
   const [isLoadingCohorts, setIsLoadingCohorts] = useState(false);
   const [cohortsError, setCohortsError] = useState("");
   const [selectedCohortId, setSelectedCohortId] = useState<string | null>(null);
   const [togglingId, setTogglingId] = useState<string | null>(null);
 
-  const handleToggleCohortStatus = async (
+  const loadCohorts = useCallback(async () => {
+    try {
+      setIsLoadingCohorts(true);
+      setCohortsError("");
+
+      const response = await getAdminCohorts({
+        page: currentPage,
+        limit: perPage,
+      });
+      const normalized = normalizeCohortsResponse(response);
+
+      setCohortRows(normalized.items);
+      setCohortsPagination(normalized.pagination);
+    } catch (error) {
+      setCohortsError(
+        error instanceof Error ? error.message : "Failed to load cohorts",
+      );
+    } finally {
+      setIsLoadingCohorts(false);
+    }
+  }, [currentPage, perPage]);
+
+  const handleToggleCohortStatus = useCallback(async (
     id: string,
     currentStatus: boolean,
   ) => {
@@ -288,29 +338,11 @@ export default function CohortsPage() {
     } finally {
       setTogglingId(null);
     }
-  };
-
-  const loadCohorts = async () => {
-    try {
-      setIsLoadingCohorts(true);
-      setCohortsError("");
-
-      const response = await getAdminCohorts();
-      const normalizedRows = normalizeCohortsResponse(response);
-
-      setCohortRows(normalizedRows);
-    } catch (error) {
-      setCohortsError(
-        error instanceof Error ? error.message : "Failed to load cohorts",
-      );
-    } finally {
-      setIsLoadingCohorts(false);
-    }
-  };
+  }, [loadCohorts]);
 
   useEffect(() => {
     loadCohorts();
-  }, []);
+  }, [loadCohorts]);
 
   const resetModalState = () => {
     setForm(initialForm);
@@ -383,10 +415,10 @@ export default function CohortsPage() {
           return;
         }
 
-        const response = await updateAdminCohort(selectedCohortId, payload);
+        await updateAdminCohort(selectedCohortId, payload);
         await loadCohorts();
       } else {
-        const response = await createAdminCohort(payload);
+        await createAdminCohort(payload);
         await loadCohorts();
       }
 
@@ -513,7 +545,7 @@ export default function CohortsPage() {
         ),
       },
     ],
-    [],
+    [handleToggleCohortStatus, togglingId],
   );
 
   return (
@@ -547,12 +579,23 @@ export default function CohortsPage() {
               columns={columns}
               rows={cohortRows}
               showToolbar={false}
+              pagination={{
+                currentPage,
+                totalPages: cohortsPagination.totalPages,
+                totalRecords: cohortsPagination.totalRecords,
+                rowsPerPage: perPage,
+                onPageChange: setCurrentPage,
+                onRowsPerPageChange: (value) => {
+                  setPerPage(value);
+                  setCurrentPage(1);
+                },
+              }}
               footer={
                 isLoadingCohorts
                   ? "Loading cohorts..."
                   : cohortsError
                     ? cohortsError
-                    : `Showing ${cohortRows.length} cohorts`
+                    : `Showing ${cohortRows.length} of ${cohortsPagination.totalRecords} cohorts`
               }
             />
           </div>

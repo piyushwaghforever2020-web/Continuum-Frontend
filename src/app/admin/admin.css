@@ -643,6 +643,13 @@
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
+.admin-edit-field-cell {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+}
+
 .admin-edit-table--investment input,
 .admin-edit-table--program input,
 .admin-edit-table--refund-policy input {
