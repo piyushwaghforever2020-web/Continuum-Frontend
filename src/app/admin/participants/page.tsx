@@ -787,12 +787,12 @@ export default function ParticipantsPage() {
               }      >
               <FiEye size={14} />
             </button>
-            <AdminToggle
+            {/* <AdminToggle
               checked={row.active}
               disabled={togglingId === row.id}
               onChange={() => handleToggleActive(row.id, row.active)}
               ariaLabel={`Toggle active status for ${row.name}`}
-            />
+            /> */}
           </div>
         ),
       },
