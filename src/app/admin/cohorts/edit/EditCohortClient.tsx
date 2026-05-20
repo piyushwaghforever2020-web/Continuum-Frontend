@@ -64,11 +64,18 @@ const requiredEditCohortFields = new Set<keyof EditCohortForm>([
   "timeCommitment",
   "workshop",
   "cohortSize",
-  "ctaDescription",
   "price",
 ]);
 
 const requiredMessage = "This field is required";
+
+function RequiredMarker() {
+  return (
+    <i className="admin-required-marker" aria-hidden="true">
+      *
+    </i>
+  );
+}
 
 const emptyInvestmentRow: InvestmentRow = {
   titleName: "",
@@ -531,27 +538,6 @@ export default function EditCohortClient() {
       }
     });
 
-    form.refundDeferralPolicy.forEach((row, index) => {
-      if (!row.program.trim()) {
-        nextErrors[`refundDeferralPolicy.${index}.program`] = requiredMessage;
-      }
-      if (!row.pricePerSeat.trim()) {
-        nextErrors[`refundDeferralPolicy.${index}.pricePerSeat`] = requiredMessage;
-      }
-    });
-
-    form.investments.forEach((row, index) => {
-      if (!row.titleName.trim()) {
-        nextErrors[`investments.${index}.titleName`] = requiredMessage;
-      }
-      if (!row.price.trim()) {
-        nextErrors[`investments.${index}.price`] = requiredMessage;
-      }
-      if (!row.whatYouGet.trim()) {
-        nextErrors[`investments.${index}.whatYouGet`] = requiredMessage;
-      }
-    });
-
     form.leaveWith.forEach((row, index) => {
       if (!row.value.trim()) {
         nextErrors[`leaveWith.${index}.value`] = requiredMessage;
@@ -675,7 +661,7 @@ export default function EditCohortClient() {
               <div className="flex flex-col mt-3 gap-[20px]">
 
               <label className="admin-form-field">
-                <span>Cohort Title </span>
+                <span>Cohort Title <RequiredMarker /></span>
                 <input
                   value={form.cohortTitle}
                   disabled={isLoading}
@@ -688,7 +674,7 @@ export default function EditCohortClient() {
                 ) : null}
               </label>
               <label className="admin-form-field">
-                <span>Cohort Description</span>
+                <span>Cohort Description <RequiredMarker /></span>
                 <textarea
                   rows={3}
                   value={form.cohortDescription}
@@ -702,7 +688,7 @@ export default function EditCohortClient() {
                 ) : null}
               </label>
               <label className="admin-form-field">
-                <span>Program Overview</span>
+                <span>Program Overview <RequiredMarker /></span>
                 <textarea
                   rows={3}
                   value={form.programOverview}
@@ -723,7 +709,7 @@ export default function EditCohortClient() {
               <hr />
               <div className="admin-edit-grid admin-edit-grid--two mt-3">
                 <label className="admin-form-field">
-                  <span>Start date </span>
+                  <span>Start date <RequiredMarker /></span>
                   <input
                     type="date"
                     value={form.startDate}
@@ -737,7 +723,7 @@ export default function EditCohortClient() {
                   ) : null}
                 </label>
                 <label className="admin-form-field">
-                  <span>End date </span>
+                  <span>End date <RequiredMarker /></span>
                   <input
                     type="date"
                     value={form.endDate}
@@ -751,7 +737,7 @@ export default function EditCohortClient() {
                   ) : null}
                 </label>
                 <label className="admin-form-field">
-                  <span>Live sessions</span>
+                  <span>Live sessions <RequiredMarker /></span>
                   <input
                     value={form.liveSessions}
                     disabled={isLoading}
@@ -764,7 +750,7 @@ export default function EditCohortClient() {
                   ) : null}
                 </label>
                 <label className="admin-form-field">
-                  <span>Format</span>
+                  <span>Format <RequiredMarker /></span>
                   <input
                     value={form.format}
                     disabled={isLoading}
@@ -777,7 +763,7 @@ export default function EditCohortClient() {
                   ) : null}
                 </label>
                 <label className="admin-form-field">
-                  <span>Time Commitment</span>
+                  <span>Time Commitment <RequiredMarker /></span>
                   <input
                     value={form.timeCommitment}
                     disabled={isLoading}
@@ -791,7 +777,7 @@ export default function EditCohortClient() {
                   ) : null}
                 </label>
                 <label className="admin-form-field">
-                  <span>Workshop</span>
+                  <span>Workshop <RequiredMarker /></span>
                   <input
                     value={form.workshop}
                     disabled={isLoading}
@@ -804,7 +790,7 @@ export default function EditCohortClient() {
                   ) : null}
                 </label>
                  <label className="admin-form-field ">
-                <span>Seat limit</span>
+                <span>Seat limit <RequiredMarker /></span>
                 <input
                   inputMode="numeric"
                   pattern="[0-9]*"
@@ -954,7 +940,7 @@ export default function EditCohortClient() {
 
             <section className="admin-edit-section">
               <div className="admin-edit-section__heading-row">
-                <h3 className="admin-edit-section__title">What You Leave With</h3>
+                <h3 className="admin-edit-section__title">What You Leave With <RequiredMarker /></h3>
                 <button type="button" className="admin-mini-button" onClick={addLeaveWith}>
                   <FiPlus size={12} />
                   <span>Add row</span>
@@ -1009,7 +995,7 @@ export default function EditCohortClient() {
               </label>
               <div className="admin-edit-grid admin-edit-grid--compact">
                 <label className="admin-form-field">
-                  <span>Price </span>
+                  <span>Price <RequiredMarker /></span>
                   <div className="admin-money-input" style={{ display: "flex" }}>
                     <input
                       inputMode="numeric"
@@ -1044,8 +1030,8 @@ export default function EditCohortClient() {
                 <div className="admin-edit-table admin-edit-table--program">
                   <div className="admin-edit-table__head">
                     <span>#</span>
-                    <span>Program Name</span>
-                    <span>Program Description</span>
+                    <span>Program Name <RequiredMarker /></span>
+                    <span>Program Description <RequiredMarker /></span>
                     <span />
                   </div>
                   {form.programs.map((row, index) => (

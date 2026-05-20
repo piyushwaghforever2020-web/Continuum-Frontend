@@ -742,6 +742,11 @@
   color: #DC2828;
 }
 
+.admin-required-marker {
+  color: inherit;
+  font-style: normal;
+}
+
 .admin-edit-section .admin-form-field .admin-money-input span {
   margin: 0;
   color: #64606B;

@@ -73,7 +73,6 @@ const requiredCreateCohortSubmitFields = new Set<keyof EditCohortForm>([
   "timeCommitment",
   "workshop",
   "cohortSize",
-  "ctaDescription",
   "price",
 ]);
 
@@ -129,6 +128,35 @@ function parseNumberOrText(value: string) {
 
 function digitsOnly(value: string) {
   return value.replace(/\D/g, "");
+}
+
+function asRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
+}
+
+function getCreateCohortErrorMessage(error: unknown) {
+  const response = asRecord(asRecord(error).response);
+  const data = asRecord(response.data);
+  const details = asRecord(data.data).details;
+  const backendMessage = data.message;
+
+  if (typeof backendMessage === "string" && backendMessage.trim()) {
+    return backendMessage;
+  }
+
+  if (Array.isArray(details)) {
+    const detailMessage = details
+      .filter((detail): detail is string => typeof detail === "string")
+      .join(", ");
+
+    if (detailMessage) {
+      return detailMessage;
+    }
+  }
+
+  return error instanceof Error ? error.message : "Failed to create cohort.";
 }
 
 export default function CreateCohortClient() {
@@ -358,27 +386,6 @@ export default function CreateCohortClient() {
     });
 
     if (mode === "submit") {
-      form.refundDeferralPolicy.forEach((row, index) => {
-        if (!row.program.trim()) {
-          nextErrors[`refundDeferralPolicy.${index}.program`] = requiredMessage;
-        }
-        if (!row.pricePerSeat.trim()) {
-          nextErrors[`refundDeferralPolicy.${index}.pricePerSeat`] = requiredMessage;
-        }
-      });
-
-      form.investments.forEach((row, index) => {
-        if (!row.titleName.trim()) {
-          nextErrors[`investments.${index}.titleName`] = requiredMessage;
-        }
-        if (!row.price.trim()) {
-          nextErrors[`investments.${index}.price`] = requiredMessage;
-        }
-        if (!row.whatYouGet.trim()) {
-          nextErrors[`investments.${index}.whatYouGet`] = requiredMessage;
-        }
-      });
-
       form.leaveWith.forEach((row, index) => {
         if (!row.value.trim()) {
           nextErrors[`leaveWith.${index}.value`] = requiredMessage;
@@ -421,7 +428,7 @@ export default function CreateCohortClient() {
       router.replace("/admin/cohorts");
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create cohort.");
+      setError(getCreateCohortErrorMessage(err));
     } finally {
       setIsSubmitting(false);
       setIsDraftRequest(false);
