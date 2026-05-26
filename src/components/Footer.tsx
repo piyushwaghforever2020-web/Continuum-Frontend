@@ -27,6 +27,7 @@ const resourceLinks = [
   { label: "Case Studies", href: "/casestudies" },
   { label: "Pricing, Registration & Enrollment", href: "/registration" },
   { label: "Cohort Calendar (PDF)", href: "/Upcoming_Cohort_Dates_v2.pdf" },
+  {label: "Refund Policy", href: "/refund-policy" },
 ];
 
 const connectLinks = [
