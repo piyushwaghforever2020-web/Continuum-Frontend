@@ -101,6 +101,13 @@ const initialForm: CohortFormData = {
   refundPolicy: "",
 };
 
+const maxSeatLimit = 20;
+const maxSeatLimitMessage = `Seat limit cannot exceed ${maxSeatLimit}.`;
+
+function normalizeSeatLimitInput(value: string) {
+  return value.replace(/\D/g, "");
+}
+
 function getStatusColor(status?: string) {
   const statusColors: Record<string, string> = {
     active: "#2BAB6F",
@@ -350,7 +357,14 @@ function CohortFormModal({
 
           <label className="admin-form-field">
             <span>Seat Limit</span>
-            <input value={form.seatLimit} onChange={(event) => onChange("seatLimit", event.target.value)} />
+            <input
+              inputMode="numeric"
+              pattern="[0-9]*"
+              value={form.seatLimit}
+              onChange={(event) =>
+                onChange("seatLimit", normalizeSeatLimitInput(event.target.value))
+              }
+            />
             {errors.seatLimit ? <p className="admin-form-field__error">{errors.seatLimit}</p> : null}
           </label>
 
@@ -562,6 +576,8 @@ export default function CohortDetailClient() {
     if (!values.startDate.trim()) nextErrors.startDate = "This field is required";
     if (!values.price.trim()) nextErrors.price = "This field is required";
     if (!values.seatLimit.trim()) nextErrors.seatLimit = "This field is required";
+    if (values.seatLimit.trim() && Number(values.seatLimit) > maxSeatLimit)
+      nextErrors.seatLimit = maxSeatLimitMessage;
     if (!values.refundPolicy.trim()) nextErrors.refundPolicy = "This field is required";
 
     return nextErrors;
@@ -569,7 +585,13 @@ export default function CohortDetailClient() {
 
   const handleFormChange = (field: keyof CohortFormData, value: string) => {
     setForm((current) => ({ ...current, [field]: value }));
-    setFormErrors((current) => ({ ...current, [field]: "" }));
+    setFormErrors((current) => ({
+      ...current,
+      [field]:
+        field === "seatLimit" && Number(value) > maxSeatLimit
+          ? maxSeatLimitMessage
+          : "",
+    }));
     setSubmitError("");
   };
 

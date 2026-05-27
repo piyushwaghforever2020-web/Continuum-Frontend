@@ -231,7 +231,11 @@ export default function TransformationStudioPage() {
                                             <p className={`${styles.cardDescription} mb-3`}>
                                                 We have 1–3 leaders and a development budget. Let's move
                                             </p>
-                                            <button className={`${styles1.buttonPrimary} ${styles1.part} w-full`}>
+                                            <button
+                                                type="button"
+                                                className={`${styles1.buttonPrimary} ${styles1.part} w-full`}
+                                                onClick={() => setReserveModal(true)}
+                                            >
                                                 Reserve a Seat
                                             </button>
                                         </div>

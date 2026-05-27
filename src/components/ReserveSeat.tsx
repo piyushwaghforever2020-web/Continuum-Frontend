@@ -41,9 +41,11 @@ export default function ReserveModal({
   // states for the success and failure modal
   const [showSuccess, setShowSuccess] = useState(false);
   const [showError, setShowError] = useState(false);
+  const [employerFundedSuccess, setEmployerFundedSuccess] = useState(false);
   // states for the success and failure modal
 
   const [loading, setLoading] = useState(false);
+  const [apiError, setApiError] = useState("");
 
 
   const [step, setStep] = useState<1 | 2>(1);
@@ -53,6 +55,7 @@ export default function ReserveModal({
 
   const [form, setForm] = useState({
     cohort: "",
+    cohortId: null as number | null,
     name: "",
     email: "",
     phone: "",
@@ -62,6 +65,13 @@ export default function ReserveModal({
     challenge: "",
     agreeEmail: false,
     agreeSMS: false,
+    employerFunded: false,
+    managerName: "",
+    managerEmail: "",
+    billingPhone: "",
+    billingAddress: "",
+    billingCity: "",
+    billingZipCode: "",
   });
 
   const [errors, setErrors] = useState({
@@ -73,6 +83,12 @@ export default function ReserveModal({
     role: "",
     motivation: "",
     challenge: "",
+    managerName: "",
+    managerEmail: "",
+    billingPhone: "",
+    billingAddress: "",
+    billingCity: "",
+    billingZipCode: "",
   });
 
   const modalRef = useRef<HTMLDivElement>(null);
@@ -100,6 +116,8 @@ export default function ReserveModal({
     } else {
       document.body.style.overflow = "";
       setStep(1);
+      setEmployerFundedSuccess(false);
+      setApiError("");
     }
     return () => {
       document.body.style.overflow = "";
@@ -132,6 +150,12 @@ export default function ReserveModal({
       role: "",
       motivation: "",
       challenge: "",
+      managerName: "",
+      managerEmail: "",
+      billingPhone: "",
+      billingAddress: "",
+      billingCity: "",
+      billingZipCode: "",
     };
 
     if (!form.cohort) newErrors.cohort = "Select a cohort";
@@ -146,10 +170,60 @@ export default function ReserveModal({
     if (!form.role.trim()) newErrors.role = "Role is required";
     if (!form.motivation.trim()) newErrors.motivation = "This is required";
     if (!form.challenge.trim()) newErrors.challenge = "This is required";
+    if (form.employerFunded) {
+      if (!form.managerName.trim()) {
+        newErrors.managerName = "Manager name is required";
+      }
+      if (!form.managerEmail.trim()) {
+        newErrors.managerEmail = "Manager email is required";
+      } else if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[A-Za-z]{2,}$/.test(form.managerEmail)) {
+        newErrors.managerEmail = "Enter valid manager email";
+      }
+    }
 
     setErrors(newErrors);
     console.log("newErrors", newErrors)
     return !Object.values(newErrors).some((e) => e);
+  };
+
+  const submitEmployerFundedRegistration = async () => {
+    if (!validate()) return;
+
+    try {
+      setLoading(true);
+      setApiError("");
+
+      const payload = {
+        cohort_id: form.cohortId,
+        name: form.name.trim(),
+        email: form.email.trim(),
+        company: form.company.trim(),
+        role: form.role.trim(),
+        phone: form.phone.trim(),
+        payment_type: "employer_funded",
+        manager_name: form.managerName.trim(),
+        manager_email: form.managerEmail.trim(),
+        billing_phone: form.billingPhone.trim(),
+        billing_address: form.billingAddress.trim(),
+        billing_city: form.billingCity.trim(),
+        billing_zip_code: form.billingZipCode.trim(),
+      };
+
+      await axios.post(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/applications/cohort/register`,
+        payload,
+      );
+
+      setEmployerFundedSuccess(true);
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ||
+        error?.response?.data?.data?.details?.[0] ||
+        "We couldn't submit your employer-funded registration. Please try again.";
+      setApiError(message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -191,15 +265,38 @@ export default function ReserveModal({
         <p className="text-[#737B8C] font-chivo  mb-5  text-sm font-medium">Secure an individual seat in the upcoming cohort. Ideal for leaders
           joining independently or sponsored by their employer.</p>
 
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (validate()) {
-              setShowSuccessReserveModal(true);
-              onClose()
-            }
-          }}
-        >
+        {employerFundedSuccess ? (
+          <div className="flex flex-col gap-4">
+            <h3 className="font-chivo text-[20px] font-semibold text-[var(--color-nearBlack)]">
+              Your registration is pending!
+            </h3>
+            <p className="font-chivo text-[14px] leading-6 text-[#737B8C]">
+              An invoice has been emailed to your employer. Your seat will be
+              confirmed once payment is received.
+            </p>
+            <button
+              type="button"
+              onClick={onClose}
+              className="w-full font-semibold font-chivo text-[14px] bg-burgundy text-white rounded-[14px] transition-all hover:opacity-90 active:scale-[0.99] py-[12px] px-[13px]"
+            >
+              Close
+            </button>
+          </div>
+        ) : (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (form.employerFunded) {
+                void submitEmployerFundedRegistration();
+                return;
+              }
+
+              if (validate()) {
+                setShowSuccessReserveModal(true);
+                onClose()
+              }
+            }}
+          >
           {/* Cohort */}
           <div style={{ marginBottom: "18px", position: "relative" }}>
             <label
@@ -275,9 +372,10 @@ export default function ReserveModal({
             <input
               placeholder="Your full name"
               value={form.name}
-              onChange={(e) =>
-                setForm((p) => ({ ...p, name: e.target.value }))
-              }
+              onChange={(e) => {
+                setForm((p) => ({ ...p, name: e.target.value }));
+                setApiError("");
+              }}
               className={`w-full border text-[14px] font-chivo  rounded-[14px] bg-[#F6F6F9] text-[#3d4046] placeholder-[#737B8C] focus:outline-none focus:ring-1 transition-all
     ${errors.name
                   ? "border-red-500 focus:ring-red-200"
@@ -301,9 +399,10 @@ export default function ReserveModal({
               type="email"
               placeholder="you@company.com"
               value={form.email}
-              onChange={(e) =>
-                setForm((p) => ({ ...p, email: e.target.value }))
-              }
+              onChange={(e) => {
+                setForm((p) => ({ ...p, email: e.target.value }));
+                setApiError("");
+              }}
               className={`w-full border text-[14px] font-chivo  rounded-[14px] bg-[#F6F6F9] text-[#3d4046] placeholder-[#737B8C] focus:outline-none focus:ring-1 transition-all
     ${errors.email
                   ? "border-red-500 focus:ring-red-200"
@@ -331,9 +430,10 @@ export default function ReserveModal({
             <input
               placeholder="Role / Company"
               value={form.role}
-              onChange={(e) =>
-                setForm((p) => ({ ...p, role: e.target.value }))
-              }
+              onChange={(e) => {
+                setForm((p) => ({ ...p, role: e.target.value }));
+                setApiError("");
+              }}
               className={`w-full border font-chivo  text-[14px] rounded-[14px] bg-[#F6F6F9] text-[#3d4046] placeholder-[#737B8C] focus:outline-none focus:ring-1 transition-all
         ${errors.role
                   ? "border-red-500 focus:ring-red-200"
@@ -348,6 +448,140 @@ export default function ReserveModal({
             )}
           </div>
 
+          <label className="mb-[16px] flex items-start gap-3 rounded-[14px] border border-[#DCDEE5] bg-[#F6F6F9] p-3 font-chivo text-[14px] text-[var(--color-nearBlack)]">
+            <input
+              type="checkbox"
+              checked={form.employerFunded}
+              onChange={(e) => {
+                setForm((p) => ({ ...p, employerFunded: e.target.checked }));
+                setApiError("");
+              }}
+              className="mt-1"
+            />
+            <span>My employer will be funding this</span>
+          </label>
+
+          {form.employerFunded ? (
+            <div className="mb-[16px] rounded-[16px] border border-[#E5E7EB] p-4">
+              <p className="mb-3 font-chivo text-[15px] font-semibold text-[var(--color-nearBlack)]">
+                Employer billing details
+              </p>
+
+              <div className="mb-[14px]">
+                <label className="block font-medium font-chivo text-[var(--color-nearBlack)] text-[14px] mb-[5px]">
+                  Manager name <span>*</span>
+                </label>
+                <input
+                  placeholder="Jane Smith"
+                  value={form.managerName}
+                  onChange={(e) => {
+                    setForm((p) => ({ ...p, managerName: e.target.value }));
+                    setApiError("");
+                  }}
+                  className={`w-full border text-[14px] font-chivo rounded-[14px] bg-[#F6F6F9] text-[#3d4046] placeholder-[#737B8C] focus:outline-none focus:ring-1 transition-all ${
+                    errors.managerName
+                      ? "border-red-500 focus:ring-red-200"
+                      : "border-[#DCDEE5] focus:border-[var(--color-burgundy)] focus:ring-[var(--color-burgundy)]"
+                  }`}
+                  style={{ height: "40px", padding: "12px 13px" }}
+                />
+                {errors.managerName ? (
+                  <p className="text-red-500 font-chivo text-[12px] mt-1">
+                    {errors.managerName}
+                  </p>
+                ) : null}
+              </div>
+
+              <div className="mb-[14px]">
+                <label className="block font-medium font-chivo text-[var(--color-nearBlack)] text-[14px] mb-[5px]">
+                  Manager email <span>*</span>
+                </label>
+                <input
+                  type="email"
+                  placeholder="jane@company.com"
+                  value={form.managerEmail}
+                  onChange={(e) => {
+                    setForm((p) => ({ ...p, managerEmail: e.target.value }));
+                    setApiError("");
+                  }}
+                  className={`w-full border text-[14px] font-chivo rounded-[14px] bg-[#F6F6F9] text-[#3d4046] placeholder-[#737B8C] focus:outline-none focus:ring-1 transition-all ${
+                    errors.managerEmail
+                      ? "border-red-500 focus:ring-red-200"
+                      : "border-[#DCDEE5] focus:border-[var(--color-burgundy)] focus:ring-[var(--color-burgundy)]"
+                  }`}
+                  style={{ height: "40px", padding: "12px 13px" }}
+                />
+                {errors.managerEmail ? (
+                  <p className="text-red-500 font-chivo text-[12px] mt-1">
+                    {errors.managerEmail}
+                  </p>
+                ) : null}
+              </div>
+
+              <div className="mb-[14px]">
+                <label className="block font-medium font-chivo text-[var(--color-nearBlack)] text-[14px] mb-[5px]">
+                  Business address
+                </label>
+                <input
+                  placeholder="123 Business Rd."
+                  value={form.billingAddress}
+                  onChange={(e) =>
+                    setForm((p) => ({ ...p, billingAddress: e.target.value }))
+                  }
+                  className="w-full border text-[14px] font-chivo rounded-[14px] bg-[#F6F6F9] text-[#3d4046] placeholder-[#737B8C] border-[#DCDEE5] focus:outline-none focus:border-[var(--color-burgundy)] focus:ring-1 focus:ring-[var(--color-burgundy)] transition-all"
+                  style={{ height: "40px", padding: "12px 13px" }}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-[14px]">
+                <div>
+                  <label className="block font-medium font-chivo text-[var(--color-nearBlack)] text-[14px] mb-[5px]">
+                    City
+                  </label>
+                  <input
+                    placeholder="San Francisco"
+                    value={form.billingCity}
+                    onChange={(e) =>
+                      setForm((p) => ({ ...p, billingCity: e.target.value }))
+                    }
+                    className="w-full border text-[14px] font-chivo rounded-[14px] bg-[#F6F6F9] text-[#3d4046] placeholder-[#737B8C] border-[#DCDEE5] focus:outline-none focus:border-[var(--color-burgundy)] focus:ring-1 focus:ring-[var(--color-burgundy)] transition-all"
+                    style={{ height: "40px", padding: "12px 13px" }}
+                  />
+                </div>
+                <div>
+                  <label className="block font-medium font-chivo text-[var(--color-nearBlack)] text-[14px] mb-[5px]">
+                    Zip code
+                  </label>
+                  <input
+                    placeholder="94105"
+                    value={form.billingZipCode}
+                    onChange={(e) =>
+                      setForm((p) => ({ ...p, billingZipCode: e.target.value }))
+                    }
+                    className="w-full border text-[14px] font-chivo rounded-[14px] bg-[#F6F6F9] text-[#3d4046] placeholder-[#737B8C] border-[#DCDEE5] focus:outline-none focus:border-[var(--color-burgundy)] focus:ring-1 focus:ring-[var(--color-burgundy)] transition-all"
+                    style={{ height: "40px", padding: "12px 13px" }}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-medium font-chivo text-[var(--color-nearBlack)] text-[14px] mb-[5px]">
+                  Phone number
+                </label>
+                <input
+                  type="tel"
+                  placeholder="+1 555 987 6543"
+                  value={form.billingPhone}
+                  onChange={(e) =>
+                    setForm((p) => ({ ...p, billingPhone: e.target.value }))
+                  }
+                  className="w-full border text-[14px] font-chivo rounded-[14px] bg-[#F6F6F9] text-[#3d4046] placeholder-[#737B8C] border-[#DCDEE5] focus:outline-none focus:border-[var(--color-burgundy)] focus:ring-1 focus:ring-[var(--color-burgundy)] transition-all"
+                  style={{ height: "40px", padding: "12px 13px" }}
+                />
+              </div>
+            </div>
+          ) : null}
+
 
           <div className="mb-[16px]">
             <label className="block font-medium font-chivo  text-[14px] text-[var(--color-nearBlack)] mb-[5px]">
@@ -357,9 +591,9 @@ export default function ReserveModal({
             <textarea
               placeholder="Share your motivation..."
               value={form.motivation}
-              onChange={(e) =>
-                setForm((p) => ({ ...p, motivation: e.target.value }))
-              }
+            onChange={(e) =>
+              setForm((p) => ({ ...p, motivation: e.target.value }))
+            }
               className={`w-full border font-chivo  text-[14px] rounded-[14px] bg-[#F6F6F9] text-[#3d4046] placeholder-[#737B8C] focus:outline-none focus:ring-1 transition-all
         ${errors.motivation
                   ? "border-red-500 focus:ring-red-200"
@@ -381,9 +615,9 @@ export default function ReserveModal({
             <textarea
               placeholder="Describe the problem you're working on..."
               value={form.challenge}
-              onChange={(e) =>
-                setForm((p) => ({ ...p, challenge: e.target.value }))
-              }
+            onChange={(e) =>
+              setForm((p) => ({ ...p, challenge: e.target.value }))
+            }
               className={`w-full border font-chivo  text-[14px] rounded-[14px] bg-[#F6F6F9] text-[#3d4046] placeholder-[#737B8C] focus:outline-none focus:ring-1 transition-all
         ${errors.challenge
                   ? "border-red-500 focus:ring-red-200"
@@ -396,24 +630,28 @@ export default function ReserveModal({
             )}
           </div>
 
-
-
-
-
+          {apiError ? (
+            <p className="mb-3 text-[12px] text-red-500 font-chivo">
+              {apiError}
+            </p>
+          ) : null}
 
           {/* Continue */}
           <button
             type="submit"
+            disabled={loading}
             className="w-full font-semibold font-chivo  text-[14px] bg-burgundy text-white rounded-[14px] transition-all hover:opacity-90 active:scale-[0.99]  py-[12px] px-[13px] capitalize"
             style={{
               marginBottom: "10px",
               border: "none",
-              cursor: "pointer",
+              cursor: loading ? "not-allowed" : "pointer",
+              opacity: loading ? 0.7 : 1,
             }}
           >
-            Submit
+            {loading ? "Submitting..." : "Submit"}
           </button>
         </form>
+        )}
 
 
 
@@ -423,7 +661,6 @@ export default function ReserveModal({
     </div>
   );
 }
-
 
 
 

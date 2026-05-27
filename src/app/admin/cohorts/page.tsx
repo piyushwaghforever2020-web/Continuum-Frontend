@@ -47,6 +47,13 @@ const initialForm: CohortFormData = {
   refundPolicy: "",
 };
 
+const maxSeatLimit = 20;
+const maxSeatLimitMessage = `Seat limit cannot exceed ${maxSeatLimit}.`;
+
+function normalizeSeatLimitInput(value: string) {
+  return value.replace(/\D/g, "");
+}
+
 function normalizeStatus(value: unknown): CohortItem["status"] {
   const normalized = String(value ?? "").toLowerCase();
 
@@ -233,8 +240,12 @@ function CreateCohortModal({
             <label className="admin-form-field">
               <span>Seat Limit</span>
               <input
+                inputMode="numeric"
+                pattern="[0-9]*"
                 value={form.seatLimit}
-                onChange={(event) => onChange("seatLimit", event.target.value)}
+                onChange={(event) =>
+                  onChange("seatLimit", normalizeSeatLimitInput(event.target.value))
+                }
               />
               {errors.seatLimit ? (
                 <p className="admin-form-field__error">{errors.seatLimit}</p>
@@ -370,6 +381,8 @@ export default function CohortsPage() {
     if (!values.price.trim()) nextErrors.price = "This field is required";
     if (!values.seatLimit.trim())
       nextErrors.seatLimit = "This field is required";
+    if (values.seatLimit.trim() && Number(values.seatLimit) > maxSeatLimit)
+      nextErrors.seatLimit = maxSeatLimitMessage;
     if (!values.refundPolicy.trim())
       nextErrors.refundPolicy = "This field is required";
 
@@ -382,7 +395,13 @@ export default function CohortsPage() {
 
   const handleFormChange = (field: keyof CohortFormData, value: string) => {
     setForm((current) => ({ ...current, [field]: value }));
-    setFormErrors((current) => ({ ...current, [field]: "" }));
+    setFormErrors((current) => ({
+      ...current,
+      [field]:
+        field === "seatLimit" && Number(value) > maxSeatLimit
+          ? maxSeatLimitMessage
+          : "",
+    }));
     setSubmitError("");
   };
 
@@ -473,7 +492,7 @@ export default function CohortsPage() {
         header: "Status",
         render: (row: CohortItem) => {
           const status = row.sync_status?.toLowerCase();
-
+          console.log("status-status-status", status)
           const statusColors: Record<string, string> = {
             active: "#2BAB6F",
             full: "#D9AC26",
@@ -497,21 +516,14 @@ export default function CohortsPage() {
           );
         },
       },
-      // {
-      //   key: "status",
-      //   header: "Status",
-      //   render: (row) => (
-      //     <AdminStatusBadge customColor={getStatusColor(row.status)}>
-      //       {row.status}
-      //     </AdminStatusBadge>
-      //   ),
-      // },
+
       {
         key: "action",
         header: "Action",
         className: "w-[300px]",
-        render: (row) => (
-          <div className="admin-row-actions">
+        render: (row) => {
+          const status = row.sync_status?.toLowerCase();
+          return (<div className="admin-row-actions">
             <Link
               href={`/admin/cohorts/view?id=${encodeURIComponent(row.id)}`}
               className="admin-row-actions__button"
@@ -520,8 +532,15 @@ export default function CohortsPage() {
               <FiEye size={14} />
             </Link>
             <Link
-              href={`/admin/cohorts/edit?id=${encodeURIComponent(row.id)}`}
-              className="admin-row-actions__button"
+              href={
+                status === "inactive" || status === "closed" 
+                  ? "#"
+                  : `/admin/cohorts/edit?id=${encodeURIComponent(row.id)}`
+              }
+              className={`admin-row-actions__button ${status === "inactive" || status === "closed" 
+                  ? "pointer-events-none opacity-50 cursor-not-allowed"
+                  : ""
+                }`}
               aria-label={`Edit ${row.name}`}
             >
               <FiEdit2 size={14} />
@@ -541,8 +560,8 @@ export default function CohortsPage() {
               }
               ariaLabel={`Toggle active status for ${row.name}`}
             />
-          </div>
-        ),
+          </div>)
+        },
       },
     ],
     [handleToggleCohortStatus, togglingId],
@@ -565,7 +584,7 @@ export default function CohortsPage() {
               <button
                 type="button"
                 className="admin-table-button admin-table-button--primary"
-                // onClick={openCreateModal}
+              // onClick={openCreateModal}
               >
                 <Link href="/admin/cohorts/create" className="flex gap-2">
                   <FiPlus size={14} />

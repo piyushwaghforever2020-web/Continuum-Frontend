@@ -119,6 +119,30 @@
   font-weight: 800;
 }
 
+.waitlistPrompt {
+  color: #ffffff;
+  font-family: var(--font-chivo) !important;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 18px;
+  text-align: center;
+}
+
+.waitlistPrompt button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-deepGold);
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.waitlistPrompt button:hover {
+  color: #ffffff;
+}
+
 .cardDescription {
   font-weight: 400;
   font-size: 16px;

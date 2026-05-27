@@ -11,6 +11,7 @@ import { IoMdCheckmark } from "react-icons/io";
 import { CiStar } from "react-icons/ci";
 import Footer from "@/components/Footer";
 import EnrollmentModal from "@/components/EnrollmentModal";
+import WaitlistModal from "@/components/WaitlistModal";
 import axios from "axios";
 
 type Cohort = {
@@ -114,6 +115,8 @@ export default function RegistrationPage() {
   const [selectedProgramId, setSelectedProgramId] = useState<number | string | null>(null);
   const [selectedProgramName, setSelectedProgramName] = useState("");
   const [enrollmentModal, setEnrollmentModal] = useState(false);
+  const [waitlistModal, setWaitlistModal] = useState(false);
+  const [enrollmentPrefillData, setEnrollmentPrefillData] = useState<any>(null);
   const toggle = (index: number) => {
     setOpenIndex(openIndex === index ? null : index);
   };
@@ -286,18 +289,19 @@ export default function RegistrationPage() {
     status === "full" || status === "closed";
 
   const applyButtonLabelForSync = (status: string) =>
-    status === "closed" ? "Closed" : "Full";
+    status === "closed" ? "Session Completed" : "Full";
 
   const getProgramSyncStatus = (program: ProgramItem, cohort: Cohort) =>
     getNormalizedSyncStatus(
       program.sync_status ??
         program.syncStatus ??
         cohort.sync_status ??
-        cohort.syncStatus
+        cohort.syncStatus ??
+        cohort.status
     );
 
   const getCohortSyncStatus = (cohort: Cohort) =>
-    getNormalizedSyncStatus(cohort.sync_status ?? cohort.syncStatus);
+    getNormalizedSyncStatus(cohort.sync_status ?? cohort.syncStatus ?? cohort.status);
 
   const getProgramButtonLabel = (program: ProgramItem) => {
     const programName = getProgramName(program);
@@ -311,12 +315,27 @@ export default function RegistrationPage() {
   );
 
   const openEnrollmentModal = (cohort: Cohort, label: string, program?: ProgramItem) => {
+    const programId = program?.program_id ?? program?.programId ?? program?.id ?? null;
+    const programName = program ? getProgramName(program) : "";
+
     setSupport(label);
     setSelectedCohortId(cohort.id);
-    setSelectedProgramId(
-      program?.program_id ?? program?.programId ?? program?.id ?? null
-    );
-    setSelectedProgramName(program ? getProgramName(program) : "");
+    setSelectedProgramId(programId);
+    setSelectedProgramName(programName);
+    setEnrollmentPrefillData({
+      cohortId: cohort.id,
+      programId,
+      program: programName,
+    });
+    setEnrollmentModal(true);
+  };
+
+  const openWaitlistEnrollment = (data?: any) => {
+    setSupport(data?.cohort ?? data?.program ?? "Transformation Lab");
+    setSelectedCohortId(data?.cohortId ?? null);
+    setSelectedProgramId(data?.programId ?? null);
+    setSelectedProgramName(data?.program ?? "");
+    setEnrollmentPrefillData(data ?? null);
     setEnrollmentModal(true);
   };
 
@@ -427,7 +446,9 @@ export default function RegistrationPage() {
                 const canEnroll = isEnrollmentOpen(cohort);
                 const seatLimitText = getSeatLimitText(cohort, programs);
                 const cohortSyncStatus = getCohortSyncStatus(cohort);
+                console.log("cohortSyncStatus",cohortSyncStatus)
                 const cohortSyncBlocksApply = isApplyBlockedBySyncStatus(cohortSyncStatus);
+                const showClosedWaitlistPrompt = cohortSyncStatus === "closed";
                 const singleApplyDisabled = !canEnroll || cohortSyncBlocksApply;
                 const singleApplyLabel = cohortSyncBlocksApply
                   ? applyButtonLabelForSync(cohortSyncStatus)
@@ -631,41 +652,67 @@ export default function RegistrationPage() {
                           </p>
 
                           {isMultiProgram && programs.length > 0 ? (
-                            programs.map((program) => {
-                              const programName = getProgramName(program);
-                              const syncStatus = getProgramSyncStatus(program, cohort);
-                              const syncBlocksApply = isApplyBlockedBySyncStatus(syncStatus);
-                              const disabled =
-                                !canEnroll ||
-                                Boolean(program.is_full) ||
-                                syncBlocksApply;
-                              const buttonLabel = syncBlocksApply
-                                ? applyButtonLabelForSync(syncStatus)
-                                : getProgramButtonLabel(program);
+                            <>
+                              {programs.map((program) => {
+                                const programName = getProgramName(program);
+                                const syncStatus = getProgramSyncStatus(program, cohort);
+                                const syncBlocksApply = isApplyBlockedBySyncStatus(syncStatus);
+                                const disabled =
+                                  !canEnroll ||
+                                  Boolean(program.is_full) ||
+                                  syncBlocksApply;
+                                const buttonLabel = syncBlocksApply
+                                  ? applyButtonLabelForSync(syncStatus)
+                                  : getProgramButtonLabel(program);
 
-                              return (
-                                <button
-                                  className={`${styles.buttonPrimary} ${styles.part} w-full ${
-                                    disabled ? "cursor-not-allowed-button" : ""
-                                  }`}
-                                  disabled={disabled}
-                                  key={String(program.program_id ?? program.id ?? programName)}
-                                  onClick={() => openEnrollmentModal(cohort, programName, program)}
-                                >
-                                  {buttonLabel}
-                                </button>
-                              );
-                            })
+                                return (
+                                  <button
+                                    className={`${styles.buttonPrimary} ${styles.part} w-full ${
+                                      disabled ? "cursor-not-allowed-button" : ""
+                                    }`}
+                                    disabled={disabled}
+                                    key={String(program.program_id ?? program.id ?? programName)}
+                                    onClick={() => openEnrollmentModal(cohort, programName, program)}
+                                  >
+                                    {buttonLabel}
+                                  </button>
+                                );
+                              })}
+                              {showClosedWaitlistPrompt ? (
+                                <p className={registrationstyles.waitlistPrompt}>
+                                  Interested?{" "}
+                                  <button
+                                    type="button"
+                                    onClick={() => setWaitlistModal(true)}
+                                  >
+                                    Click here to get added to waitlist
+                                  </button>
+                                </p>
+                              ) : null}
+                            </>
                           ) : (
-                            <button
-                              className={`${styles.buttonPrimary} ${styles.part} !px-2 w-full ${
-                                singleApplyDisabled ? "cursor-not-allowed-button " : ""
-                              }`}
-                              disabled={singleApplyDisabled}
-                              onClick={() => openEnrollmentModal(cohort, cohort.name)}
-                            >
-                              {singleApplyLabel}
-                            </button>
+                            <>
+                              <button
+                                className={`${styles.buttonPrimary} ${styles.part} !px-2 w-full ${
+                                  singleApplyDisabled ? "cursor-not-allowed-button " : ""
+                                }`}
+                                disabled={singleApplyDisabled}
+                                onClick={() => openEnrollmentModal(cohort, cohort.name)}
+                              >
+                                {singleApplyLabel}
+                              </button>
+                              {showClosedWaitlistPrompt ? (
+                                <p className={registrationstyles.waitlistPrompt}>
+                                  Interested?{" "}
+                                  <button
+                                    type="button"
+                                    onClick={() => setWaitlistModal(true)}
+                                  >
+                                    Click here to get added to waitlist
+                                  </button>
+                                </p>
+                              ) : null}
+                            </>
                           )}
                         </div>
                       </div>
@@ -960,10 +1007,19 @@ export default function RegistrationPage() {
           isOpen={enrollmentModal}
           onClose={() => setEnrollmentModal(false)}
           prefillData={{
-            cohortId: selectedCohortId,
-            programId: selectedProgramId,
-            program: selectedProgramName,
+            ...(enrollmentPrefillData ?? {}),
+            cohortId: enrollmentPrefillData?.cohortId ?? selectedCohortId,
+            programId: enrollmentPrefillData?.programId ?? selectedProgramId,
+            program: enrollmentPrefillData?.program ?? selectedProgramName,
           }}
+        />
+      )}
+
+      {waitlistModal && (
+        <WaitlistModal
+          isOpen={waitlistModal}
+          onClose={() => setWaitlistModal(false)}
+          openEnrollment={openWaitlistEnrollment}
         />
       )}
 

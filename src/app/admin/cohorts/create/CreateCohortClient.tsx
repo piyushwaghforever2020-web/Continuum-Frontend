@@ -77,6 +77,8 @@ const requiredCreateCohortSubmitFields = new Set<keyof EditCohortForm>([
 ]);
 
 const requiredMessage = "This field is required";
+const maxSeatLimit = 20;
+const maxSeatLimitMessage = `Seat limit cannot exceed ${maxSeatLimit}.`;
 
 const emptyInvestmentRow: InvestmentRow = {
   titleName: "",
@@ -172,7 +174,13 @@ export default function CreateCohortClient() {
   const updateField = (field: keyof EditCohortForm, value: string) => {
     setForm((current) => ({ ...current, [field]: value }));
     if (requiredCreateCohortFields.has(field) || requiredCreateCohortSubmitFields.has(field)) {
-      setFormErrors((current) => ({ ...current, [field]: "" }));
+      setFormErrors((current) => ({
+        ...current,
+        [field]:
+          field === "cohortSize" && Number(value) > maxSeatLimit
+            ? maxSeatLimitMessage
+            : "",
+      }));
     }
     setSubmitMessage("");
   };
@@ -384,6 +392,14 @@ export default function CreateCohortClient() {
         nextErrors[field] = requiredMessage;
       }
     });
+
+    const seatLimit = Number(form.cohortSize);
+    if (
+      form.cohortSize.trim() &&
+      (!Number.isFinite(seatLimit) || seatLimit > maxSeatLimit)
+    ) {
+      nextErrors.cohortSize = maxSeatLimitMessage;
+    }
 
     if (mode === "submit") {
       form.leaveWith.forEach((row, index) => {

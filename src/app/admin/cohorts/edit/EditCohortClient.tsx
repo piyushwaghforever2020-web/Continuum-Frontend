@@ -68,6 +68,8 @@ const requiredEditCohortFields = new Set<keyof EditCohortForm>([
 ]);
 
 const requiredMessage = "This field is required";
+const maxSeatLimit = 20;
+const maxSeatLimitMessage = `Seat limit cannot exceed ${maxSeatLimit}.`;
 
 function RequiredMarker() {
   return (
@@ -379,7 +381,13 @@ export default function EditCohortClient() {
   const updateField = (field: keyof EditCohortForm, value: string) => {
     setForm((current) => ({ ...current, [field]: value }));
     if (requiredEditCohortFields.has(field)) {
-      setFormErrors((current) => ({ ...current, [field]: "" }));
+      setFormErrors((current) => ({
+        ...current,
+        [field]:
+          field === "cohortSize" && Number(value) > maxSeatLimit
+            ? maxSeatLimitMessage
+            : "",
+      }));
     }
     setSubmitMessage("");
   };
@@ -537,6 +545,14 @@ export default function EditCohortClient() {
         nextErrors[field] = requiredMessage;
       }
     });
+
+    const seatLimit = Number(form.cohortSize);
+    if (
+      form.cohortSize.trim() &&
+      (!Number.isFinite(seatLimit) || seatLimit > maxSeatLimit)
+    ) {
+      nextErrors.cohortSize = maxSeatLimitMessage;
+    }
 
     form.leaveWith.forEach((row, index) => {
       if (!row.value.trim()) {
