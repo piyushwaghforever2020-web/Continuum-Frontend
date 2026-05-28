@@ -4,6 +4,9 @@ import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { Inter } from "next/font/google";
 import axios from "axios";
+import PhoneInput from "react-phone-number-input";
+import "react-phone-number-input/style.css";
+
 const inter = Inter({
   subsets: ["latin"],
   weight: ["400", "600", "700"],
@@ -23,6 +26,8 @@ type Cohort = {
   id: number;
   name: string;
   is_active: boolean;
+  program_id?: number | string | null;
+  programId?: number | string | null;
 };
 
 type ErrorModalProps = {
@@ -56,6 +61,7 @@ export default function ReserveModal({
   const [form, setForm] = useState({
     cohort: "",
     cohortId: null as number | null,
+    programId: null as number | string | null,
     name: "",
     email: "",
     phone: "",
@@ -195,6 +201,7 @@ export default function ReserveModal({
 
       const payload = {
         cohort_id: form.cohortId,
+        program_id: form.programId ?? undefined,
         name: form.name.trim(),
         email: form.email.trim(),
         company: form.company.trim(),
@@ -257,19 +264,16 @@ export default function ReserveModal({
         </button>
 
 
-        {/* Heading */}
-        <h2 className={`font-bold  font-chivo text-[var(--color-nearBlack)] text-[24px] ${inter.className}`}
-          style={{ marginBottom: "8px", lineHeight: 1.25, paddingRight: "24px" }}>
-          Reserve your seat
-        </h2>
-        <p className="text-[#737B8C] font-chivo  mb-5  text-sm font-medium">Secure an individual seat in the upcoming cohort. Ideal for leaders
-          joining independently or sponsored by their employer.</p>
+        
+      
 
         {employerFundedSuccess ? (
           <div className="flex flex-col gap-4">
-            <h3 className="font-chivo text-[20px] font-semibold text-[var(--color-nearBlack)]">
-              Your registration is pending!
-            </h3>
+           
+              <h2 className={`font-bold  font-chivo text-[var(--color-nearBlack)] text-[24px] ${inter.className}`}
+          style={{ marginBottom: "8px", lineHeight: 1.25, paddingRight: "24px" }}>
+           Your registration is pending!
+        </h2>
             <p className="font-chivo text-[14px] leading-6 text-[#737B8C]">
               An invoice has been emailed to your employer. Your seat will be
               confirmed once payment is received.
@@ -335,7 +339,12 @@ export default function ReserveModal({
                     <div
                       key={item?.id}
                       onClick={() => {
-                        setForm((p) => ({ ...p, cohort: item?.name, cohortId: item?.id }));
+                        setForm((p) => ({
+                          ...p,
+                          cohort: item?.name,
+                          cohortId: item?.id,
+                          programId: item?.program_id ?? item?.programId ?? null,
+                        }));
                         setOptionBox(false);
 
                         if (errors.cohort) {
@@ -424,7 +433,42 @@ export default function ReserveModal({
 
           <div className="mb-[14px]">
             <label className="block font-medium font-chivo  text-[var(--color-nearBlack)] text-[14px] mb-[5px]">
-              Role / Company <span>*</span>
+              Phone number
+            </label>
+
+            <PhoneInput
+              international
+              defaultCountry="US"
+              countryCallingCodeEditable={false}
+              placeholder=""
+              value={form.phone || undefined}
+              onChange={(value) => {
+                setForm((p) => ({ ...p, phone: value ?? "" }));
+                setApiError("");
+              }}
+            />
+          </div>
+
+          <div className="mb-[14px]">
+            <label className="block font-medium font-chivo  text-[var(--color-nearBlack)] text-[14px] mb-[5px]">
+              Company
+            </label>
+
+            <input
+              placeholder="your company "
+              value={form.company}
+              onChange={(e) => {
+                setForm((p) => ({ ...p, company: e.target.value }));
+                setApiError("");
+              }}
+              className="w-full border font-chivo text-[14px] rounded-[14px] bg-[#F6F6F9] text-[#3d4046] placeholder-[#737B8C] border-[#DCDEE5] focus:outline-none focus:border-[var(--color-burgundy)] focus:ring-1 focus:ring-[var(--color-burgundy)] transition-all"
+              style={{ height: "40px", padding: "12px 13px" }}
+            />
+          </div>
+
+          <div className="mb-[14px]">
+            <label className="block font-medium font-chivo  text-[var(--color-nearBlack)] text-[14px] mb-[5px]">
+              Role <span>*</span>
             </label>
 
             <input
@@ -448,7 +492,7 @@ export default function ReserveModal({
             )}
           </div>
 
-          <label className="mb-[16px] flex items-start gap-3 rounded-[14px] border border-[#DCDEE5] bg-[#F6F6F9] p-3 font-chivo text-[14px] text-[var(--color-nearBlack)]">
+          <label className="mb-[16px] flex items-start gap-2 rounded-[14px] p-3 font-chivo text-[14px] text-[var(--color-nearBlack)]">
             <input
               type="checkbox"
               checked={form.employerFunded}
@@ -456,9 +500,9 @@ export default function ReserveModal({
                 setForm((p) => ({ ...p, employerFunded: e.target.checked }));
                 setApiError("");
               }}
-              className="mt-1"
+              className="mt-[2px] h-[16px] w-[16px] shrink-0 rounded-[8px] border-[#D1D5DB] bg-[#E5E7EB] accent-[var(--color-burgundy)]"
             />
-            <span>My employer will be funding this</span>
+            <span className="leading-[20px]">My employer will be funding this</span>
           </label>
 
           {form.employerFunded ? (
@@ -472,7 +516,7 @@ export default function ReserveModal({
                   Manager name <span>*</span>
                 </label>
                 <input
-                  placeholder="Jane Smith"
+                  placeholder="Enter Manager name"
                   value={form.managerName}
                   onChange={(e) => {
                     setForm((p) => ({ ...p, managerName: e.target.value }));
@@ -498,7 +542,7 @@ export default function ReserveModal({
                 </label>
                 <input
                   type="email"
-                  placeholder="jane@company.com"
+                  placeholder="you@company.com"
                   value={form.managerEmail}
                   onChange={(e) => {
                     setForm((p) => ({ ...p, managerEmail: e.target.value }));
@@ -523,7 +567,7 @@ export default function ReserveModal({
                   Business address
                 </label>
                 <input
-                  placeholder="123 Business Rd."
+                  placeholder=""
                   value={form.billingAddress}
                   onChange={(e) =>
                     setForm((p) => ({ ...p, billingAddress: e.target.value }))
@@ -539,7 +583,7 @@ export default function ReserveModal({
                     City
                   </label>
                   <input
-                    placeholder="San Francisco"
+                    placeholder=""
                     value={form.billingCity}
                     onChange={(e) =>
                       setForm((p) => ({ ...p, billingCity: e.target.value }))
@@ -553,7 +597,7 @@ export default function ReserveModal({
                     Zip code
                   </label>
                   <input
-                    placeholder="94105"
+                    placeholder=""
                     value={form.billingZipCode}
                     onChange={(e) =>
                       setForm((p) => ({ ...p, billingZipCode: e.target.value }))
@@ -568,15 +612,17 @@ export default function ReserveModal({
                 <label className="block font-medium font-chivo text-[var(--color-nearBlack)] text-[14px] mb-[5px]">
                   Phone number
                 </label>
-                <input
-                  type="tel"
-                  placeholder="+1 555 987 6543"
-                  value={form.billingPhone}
-                  onChange={(e) =>
-                    setForm((p) => ({ ...p, billingPhone: e.target.value }))
-                  }
-                  className="w-full border text-[14px] font-chivo rounded-[14px] bg-[#F6F6F9] text-[#3d4046] placeholder-[#737B8C] border-[#DCDEE5] focus:outline-none focus:border-[var(--color-burgundy)] focus:ring-1 focus:ring-[var(--color-burgundy)] transition-all"
-                  style={{ height: "40px", padding: "12px 13px" }}
+
+                <PhoneInput
+                  international
+                  defaultCountry="US"
+                  countryCallingCodeEditable={false}
+                  placeholder=""
+                  value={form.billingPhone || undefined}
+                  onChange={(value) => {
+                    setForm((p) => ({ ...p, billingPhone: value ?? "" }));
+                    setApiError("");
+                  }}
                 />
               </div>
             </div>
@@ -661,7 +707,3 @@ export default function ReserveModal({
     </div>
   );
 }
-
-
-
-

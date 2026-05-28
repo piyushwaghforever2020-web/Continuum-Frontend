@@ -23,6 +23,12 @@ export type EnquiriesQueryParams = {
   search?: string;
 };
 
+export type SponsorshipQueryParams = {
+  page?: number;
+  limit?: number;
+  search?: string;
+};
+
 export type CohortsQueryParams = {
   page?: number;
   limit?: number;
@@ -202,6 +208,13 @@ export const getAdminEmailListEnquiries = async (
   params: EnquiriesQueryParams = {}
 ) => {
   const res = await api.get(`/enquiries/email-list${buildQuery(params)}`);
+  return res.data;
+};
+
+export const getAdminSponsorships = async (
+  params: SponsorshipQueryParams = {}
+) => {
+  const res = await api.get(`/admin/sponsorship${buildQuery(params)}`);
   return res.data;
 };
 

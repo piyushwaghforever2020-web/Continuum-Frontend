@@ -142,7 +142,7 @@ export default function WaitlistModal({
         `${process.env.NEXT_PUBLIC_API_BASE_URL}/cohorts/${cohortId}/seat-availability`,
       );
 
-      const isAvailable = data?.success && data?.data?.seats_remaining > 0;
+      const isAvailable = data?.success && data?.data?.seat_available;
       setisSeatAvailable(isAvailable);
     } catch (err) {
       console.log(err);

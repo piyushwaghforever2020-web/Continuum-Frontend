@@ -70,6 +70,8 @@ const requiredEditCohortFields = new Set<keyof EditCohortForm>([
 const requiredMessage = "This field is required";
 const maxSeatLimit = 20;
 const maxSeatLimitMessage = `Seat limit cannot exceed ${maxSeatLimit}.`;
+const minCohortPrice = 1;
+const minCohortPriceMessage = `Cohort price cannot be less than ${minCohortPrice}.`;
 
 function RequiredMarker() {
   return (
@@ -243,6 +245,16 @@ function digitsOnly(value: string) {
   return value.replace(/\D/g, "");
 }
 
+function getCohortPriceError(value: string) {
+  const trimmed = value.trim();
+  if (!trimmed) return "";
+
+  const price = Number(trimmed.replace(/[$,\sA-Za-z]/g, ""));
+  return !Number.isFinite(price) || price < minCohortPrice
+    ? minCohortPriceMessage
+    : "";
+}
+
 function normalizePriceInput(value: string) {
   return value
     .replace(/[—−]/g, "–")
@@ -386,6 +398,8 @@ export default function EditCohortClient() {
         [field]:
           field === "cohortSize" && Number(value) > maxSeatLimit
             ? maxSeatLimitMessage
+            : field === "price"
+              ? getCohortPriceError(value)
             : "",
       }));
     }
@@ -552,6 +566,11 @@ export default function EditCohortClient() {
       (!Number.isFinite(seatLimit) || seatLimit > maxSeatLimit)
     ) {
       nextErrors.cohortSize = maxSeatLimitMessage;
+    }
+
+    const cohortPriceError = getCohortPriceError(form.price);
+    if (form.price.trim() && cohortPriceError) {
+      nextErrors.price = cohortPriceError;
     }
 
     form.leaveWith.forEach((row, index) => {
