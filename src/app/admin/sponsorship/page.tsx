@@ -1,21 +1,41 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import AdminHeader from "@/components/AdminHeader";
 import Sidebar from "@/components/Sidebar";
-import AdminTable, { AdminTableColumn } from "@/components/admin/AdminTable";
-import { getAdminSponsorships } from "@/services/admin.services";
+import AdminTable, {
+  AdminStatusBadge,
+  AdminTableColumn,
+} from "@/components/admin/AdminTable";
+import {
+  getAdminSponsorships,
+  markAdminSponsorshipAsPaid,
+  markAdminSponsorshipAsUnpaid,
+} from "@/services/admin.services";
 import { FiSearch } from "react-icons/fi";
+
+const SPONSORSHIP_STATUSES = [
+  "invoice_requested",
+  "pending_payment",
+  "paid",
+  "failed",
+  "voided",
+  "cancelled",
+] as const;
+
+type SponsorshipStatus = (typeof SPONSORSHIP_STATUSES)[number];
 
 type SponsorshipRow = {
   id: string | number;
   employerName: string;
   employerEmail: string;
-  employerPhone: string;
-  participantName: string;
-  participantEmail: string;
-  participantPhone: string;
-  cohortOrProgram: string;
+  companyName: string;
+  cohortName: string;
+  programName: string;
+  totalSeats: string;
+  usedSeats: string;
+  amount: string;
+  status: SponsorshipStatus | string;
 };
 
 type SponsorshipPagination = {
@@ -51,6 +71,54 @@ function firstText(...values: unknown[]) {
   return asText(match);
 }
 
+function formatCurrency(amount: unknown, currency: unknown) {
+  const numericAmount = Number(amount);
+
+  if (!Number.isFinite(numericAmount)) {
+    return asText(amount);
+  }
+
+  try {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: asText(currency, "usd").toUpperCase(),
+      maximumFractionDigits: 0,
+    }).format(numericAmount);
+  } catch {
+    return `${numericAmount} ${asText(currency, "usd").toUpperCase()}`;
+  }
+}
+
+function formatStatus(value: unknown) {
+  return asText(value)
+    .split("_")
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+function statusTone(status: string): "success" | "warning" | "danger" | undefined {
+  const normalized = status.toLowerCase();
+
+  if (normalized.includes("paid") || normalized.includes("completed")) {
+    return "success";
+  }
+
+  if (normalized.includes("failed") || normalized.includes("cancel")) {
+    return "danger";
+  }
+
+  return "warning";
+}
+
+function normalizeSponsorshipStatus(value: unknown): SponsorshipStatus | string {
+  const status = asText(value, "invoice_requested");
+
+  return SPONSORSHIP_STATUSES.includes(status as SponsorshipStatus)
+    ? (status as SponsorshipStatus)
+    : status;
+}
+
 function normalizeSponsorshipsResponse(payload: unknown) {
   const raw = asRecord(payload);
   const data = asRecord(raw.data ?? raw);
@@ -63,36 +131,31 @@ function normalizeSponsorshipsResponse(payload: unknown) {
 
   const rows: SponsorshipRow[] = source.map((item, index) => {
     const row = asRecord(item);
-    const participant = asRecord(row.participant ?? row.user ?? row.applicant);
     const employer = asRecord(row.employer ?? row.company_details);
     const cohort = asRecord(row.cohort);
     const program = asRecord(row.program);
 
     return {
-      id: firstText(row.id, participant.id, index + 1),
+      id: firstText(row.id, index + 1),
       employerName: firstText(
         row.manager_name,
         row.employer_name,
-        row.company,
         employer.name,
-        employer.company
+        employer.employer_name
       ),
       employerEmail: firstText(row.manager_email, row.employer_email, employer.email),
-      employerPhone: firstText(
-        row.billing_phone,
-        row.employer_phone,
-        employer.phone,
-        employer.billing_phone
+      companyName: firstText(
+        row.company_name,
+        row.company,
+        employer.company_name,
+        employer.company
       ),
-      participantName: firstText(row.name, participant.name),
-      participantEmail: firstText(row.email, participant.email),
-      participantPhone: firstText(row.phone, participant.phone),
-      cohortOrProgram: firstText(
-        row.cohort_name,
-        cohort.name,
-        row.program_name,
-        program.name
-      ),
+      cohortName: firstText(row.cohort_name, cohort.name),
+      programName: firstText(row.program_name, program.name, program.program_name),
+      totalSeats: firstText(row.total_seats, row.totalSeats),
+      usedSeats: firstText(row.used_seats, row.usedSeats),
+      amount: formatCurrency(row.amount, row.currency),
+      status: normalizeSponsorshipStatus(row.status),
     };
   });
 
@@ -117,6 +180,9 @@ export default function SponsorshipPage() {
     useState<SponsorshipPagination>(DEFAULT_PAGINATION);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [updatingSponsorshipId, setUpdatingSponsorshipId] = useState<
+    string | number | null
+  >(null);
 
   useEffect(() => {
     const timeout = window.setTimeout(() => {
@@ -126,12 +192,12 @@ export default function SponsorshipPage() {
     return () => window.clearTimeout(timeout);
   }, [search]);
 
-  useEffect(() => {
-    let active = true;
-
-    async function fetchSponsorships() {
+  const fetchSponsorships = useCallback(
+    async ({ showLoader = true }: { showLoader?: boolean } = {}) => {
       try {
-        setIsLoading(true);
+        if (showLoader) {
+          setIsLoading(true);
+        }
         setError("");
 
         const response = await getAdminSponsorships({
@@ -140,31 +206,52 @@ export default function SponsorshipPage() {
           search: debouncedSearch,
         });
 
-        if (!active) return;
-
         const normalized = normalizeSponsorshipsResponse(response);
         setRows(normalized.rows);
         setPagination(normalized.pagination);
       } catch (err) {
-        if (!active) return;
         setRows([]);
         setPagination(DEFAULT_PAGINATION);
         setError(
           err instanceof Error ? err.message : "Failed to load sponsorships."
         );
       } finally {
-        if (active) {
+        if (showLoader) {
           setIsLoading(false);
         }
       }
-    }
+    },
+    [currentPage, perPage, debouncedSearch]
+  );
 
+  useEffect(() => {
     fetchSponsorships();
+  }, [fetchSponsorships]);
 
-    return () => {
-      active = false;
-    };
-  }, [currentPage, perPage, debouncedSearch]);
+  const handleTogglePaidStatus = async (row: SponsorshipRow) => {
+    const isPaid = row.status === "paid";
+
+    try {
+      setUpdatingSponsorshipId(row.id);
+      setError("");
+
+      if (isPaid) {
+        await markAdminSponsorshipAsUnpaid(row.id);
+      } else {
+        await markAdminSponsorshipAsPaid(row.id);
+      }
+
+      await fetchSponsorships({ showLoader: false });
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Failed to update sponsorship status."
+      );
+    } finally {
+      setUpdatingSponsorshipId(null);
+    }
+  };
 
   const columns = useMemo<AdminTableColumn<SponsorshipRow>[]>(
     () => [
@@ -181,40 +268,76 @@ export default function SponsorshipPage() {
         render: (row) => <span className="admin-muted">{row.employerEmail}</span>,
       },
       {
-        key: "employerPhone",
-        header: "Employer Phone",
-        render: (row) => <span className="admin-muted">{row.employerPhone}</span>,
+        key: "companyName",
+        header: "Company",
+        render: (row) => <span className="admin-muted">{row.companyName}</span>,
       },
       {
-        key: "participantName",
-        header: "Participant Name",
+        key: "cohortName",
+        header: "Cohort",
         render: (row) => (
-          <span className="admin-table-primary">{row.participantName}</span>
+          <span className="admin-linkish">{row.cohortName}</span>
         ),
       },
       {
-        key: "participantEmail",
-        header: "Participant Email",
+        key: "programName",
+        header: "Program",
         render: (row) => (
-          <span className="admin-muted">{row.participantEmail}</span>
+          <span className="admin-muted">{row.programName}</span>
         ),
       },
       {
-        key: "participantPhone",
-        header: "Participant Phone",
+        key: "totalSeats",
+        header: "Total Seats",
         render: (row) => (
-          <span className="admin-muted">{row.participantPhone}</span>
+          <span className="admin-table-primary">{row.totalSeats}</span>
         ),
       },
       {
-        key: "cohortOrProgram",
-        header: "Cohort / Program",
+        key: "usedSeats",
+        header: "Used Seats",
+        render: (row) => <span className="admin-muted">{row.usedSeats}</span>,
+      },
+      {
+        key: "amount",
+        header: "Amount",
+        render: (row) => <span className="admin-muted">{row.amount}</span>,
+      },
+      {
+        key: "status",
+        header: "Status",
         render: (row) => (
-          <span className="admin-linkish">{row.cohortOrProgram}</span>
+          <AdminStatusBadge tone={statusTone(row.status)}>
+            {formatStatus(row.status)}
+          </AdminStatusBadge>
         ),
+      },
+      {
+        key: "action",
+        header: "Action",
+        render: (row) => {
+          const isPaid = row.status === "paid";
+          const isUpdating = updatingSponsorshipId === row.id;
+
+          return (
+            <button
+              type="button"
+              className="admin-table-button"
+              style={{ minWidth: "132px", whiteSpace: "nowrap" }}
+              disabled={isUpdating}
+              onClick={() => handleTogglePaidStatus(row)}
+            >
+              {isUpdating
+                ? "Updating..."
+                : isPaid
+                  ? "Mark as unpaid"
+                  : "Mark as paid"}
+            </button>
+          );
+        },
       },
     ],
-    []
+    [updatingSponsorshipId, fetchSponsorships]
   );
 
   const footerText = error
@@ -238,7 +361,7 @@ export default function SponsorshipPage() {
               <div>
                 <h2 className="admin-page-title">Sponsorship</h2>
                 <p className="admin-page-subtitle">
-                  Employer-funded registrations and participant details.
+                  Employer block-seat sponsorship requests and invoice status.
                 </p>
               </div>
             </section>
@@ -249,7 +372,7 @@ export default function SponsorshipPage() {
                   <FiSearch size={16} />
                   <input
                     type="text"
-                    placeholder="Search by employer, participant, email, or cohort..."
+                    placeholder="Search by employer, company, email, cohort, or program..."
                     value={search}
                     onChange={(event) => {
                       setSearch(event.target.value);

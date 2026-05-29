@@ -12,7 +12,13 @@ export const api = axios.create({
 //  Request Interceptor (Attach Token)
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("admin_token");
+    const requestUrl = String(config.url ?? "");
+    const token =
+      typeof window !== "undefined"
+        ? requestUrl.startsWith("/employer")
+          ? localStorage.getItem("session_token")
+          : localStorage.getItem("admin_token")
+        : null;
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -33,7 +39,11 @@ api.interceptors.response.use(
     // Handle auth failures globally without exposing backend token errors in UI.
     if (status === 401 || message.toLowerCase().includes("authentication token is required")) {
       if (typeof window !== "undefined") {
-        localStorage.removeItem("admin_token");
+        if (window.location.pathname.startsWith("/employer")) {
+          localStorage.removeItem("session_token");
+        } else {
+          localStorage.removeItem("admin_token");
+        }
 
         if (window.location.pathname.startsWith("/admin") && window.location.pathname !== "/admin/login") {
           window.location.replace("/admin/login");

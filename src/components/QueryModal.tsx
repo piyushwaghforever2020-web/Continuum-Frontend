@@ -28,6 +28,26 @@ type ErrorModalProps = {
 
 };
 
+type ProgramItem = {
+  id?: number | string;
+  program_id?: number | string;
+  programId?: number | string;
+  name?: string;
+  program_name?: string;
+  programName?: string;
+  title?: string;
+};
+
+type Cohort = {
+  id: number;
+  name: string;
+  is_active?: boolean;
+  seats_remaining?: number;
+  program_id?: number | string | null;
+  programId?: number | string | null;
+  programs?: ProgramItem[];
+};
+
 export default function QueryModal({
   isOpen,
   onClose,
@@ -45,12 +65,22 @@ export default function QueryModal({
   const [step, setStep] = useState<1 | 2>(1);
   const [charCount, setCharCount] = useState(0);
   const [optionBox, setOptionBox] = useState(false);
+  const [cohortOptionBox, setCohortOptionBox] = useState(false);
+  const [programOptionBox, setProgramOptionBox] = useState(false);
+  const [cohorts, setCohorts] = useState<Cohort[]>([]);
+  const [remainingSeats, setRemainingSeats] = useState<number | null>(null);
+  const [seatAvailabilityLoading, setSeatAvailabilityLoading] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   const [form, setForm] = useState({
     name: "",
     email: "",
     organization: "",
     seat: "",
+    cohort: "",
+    cohortId: null as number | null,
+    program: "",
+    programId: null as number | string | null,
     message: "",
   });
 
@@ -59,11 +89,78 @@ export default function QueryModal({
     email: "",
     organization: "",
     seat: "",
+    cohort: "",
+    program: "",
     message: "",
   });
 
   const modalRef = useRef<HTMLDivElement>(null);
   const firstInputRef = useRef<HTMLInputElement>(null);
+
+  const getProgramId = (program: ProgramItem) =>
+    program.program_id ?? program.programId ?? program.id ?? null;
+
+  const getProgramName = (program: ProgramItem) =>
+    String(
+      program.program_name ??
+      program.name ??
+      program.programName ??
+      program.title ??
+      "Program",
+    );
+
+  const selectedCohort = cohorts.find(
+    (cohort) => String(cohort.id) === String(form.cohortId),
+  );
+  const selectedCohortPrograms = selectedCohort?.programs ?? [];
+  const seatOptions =
+    remainingSeats && remainingSeats > 0
+      ? Array.from({ length: remainingSeats }, (_, index) => String(index + 1))
+      : [];
+
+  const normalizeRemainingSeats = (data: any, fallback?: number) => {
+   console.log("datadata",data)
+    const value = data?.data?.seats_remaining ;
+
+    const parsed = Number(value);
+    return Number.isFinite(parsed) && parsed > 0 ? Math.floor(parsed) : 0;
+  };
+
+  const fetchSeatAvailability = async (cohortId: number, fallback?: number) => {
+    setSeatAvailabilityLoading(true);
+    setRemainingSeats(null);
+    try {
+      const { data } = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/cohorts/${cohortId}/seat-availability`,
+      );
+
+      setRemainingSeats(normalizeRemainingSeats(data, fallback));
+    } catch (error) {
+      console.error("Error fetching seat availability", error);
+      setRemainingSeats(normalizeRemainingSeats(null, fallback));
+    } finally {
+      setSeatAvailabilityLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const getCohorts = async () => {
+      try {
+        const response = await axios.get(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/cohorts`,
+        );
+        const activeCohorts = (response?.data?.data || []).filter(
+          (cohort: Cohort) => cohort?.is_active !== false,
+        );
+
+        setCohorts(activeCohorts);
+      } catch (error) {
+        console.error("Error fetching cohorts", error);
+      }
+    };
+
+    getCohorts();
+  }, []);
 
   useEffect(() => {
     if (isOpen) {
@@ -72,6 +169,19 @@ export default function QueryModal({
     } else {
       document.body.style.overflow = "";
       setStep(1);
+      setForm({
+        name: "",
+        email: "",
+        organization: "",
+        seat: "",
+        cohort: "",
+        cohortId: null,
+        program: "",
+        programId: null,
+        message: "",
+      });
+      setRemainingSeats(null);
+      setSubmitError("");
     }
     return () => {
       document.body.style.overflow = "";
@@ -86,24 +196,17 @@ export default function QueryModal({
     return () => document.removeEventListener("keydown", handler);
   }, [onClose]);
 
-  const handleOptionBoxToggle = () => {
-    setOptionBox((prev) => !prev);
-  };
-
-
-
-
-
   const validate = () => {
     const newErrors = {
       name: "",
       email: "",
       organization: "",
       seat: "",
+      cohort: "",
+      program: "",
       message: "",
     };
 
-    if (!form.seat) newErrors.seat = "Select a seat";
     if (!form.name.trim()) newErrors.name = "Name is required";
 
     if (!form.email.trim()) {
@@ -114,11 +217,55 @@ export default function QueryModal({
 
     if (!form.organization.trim()) newErrors.organization = "organization is required";
     if (!form.message.trim()) newErrors.message = "This is required";
-    if (!form.seat.trim()) newErrors.seat = "This is required";
+    if (!form.cohortId) newErrors.cohort = "Select a cohort";
+    if (selectedCohortPrograms.length > 0 && !form.programId) {
+      newErrors.program = "Select a program";
+    }
+    if (!form.seat.trim()) newErrors.seat = "Select seats";
+    if (remainingSeats !== null && Number(form.seat) > remainingSeats) {
+      newErrors.seat = `Only ${remainingSeats} seats remaining`;
+    }
 
     setErrors(newErrors);
-    console.log("newErrors", newErrors)
     return !Object.values(newErrors).some((e) => e);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitError("");
+
+    if (!validate()) return;
+
+    const programId =
+      form.programId ?? selectedCohort?.program_id ?? selectedCohort?.programId;
+
+    try {
+      setLoading(true);
+      await axios.post(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/sponsorships/block/register`,
+        {
+          employer_name: form.name.trim(),
+          employer_email: form.email.trim(),
+          company_name: form.organization.trim(),
+          cohort_id: form.cohortId,
+          program_id: programId,
+          total_seats: Number(form.seat),
+          message: form.message.trim(),
+        },
+      );
+
+      onClose();
+      setShowSuccessRequestGroup(true);
+    } catch (error) {
+      const message = axios.isAxiosError(error)
+        ? String(error.response?.data?.message ?? "")
+        : "";
+      setSubmitError(
+        message || "We couldn't submit your request. Please try again.",
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -159,16 +306,7 @@ export default function QueryModal({
         </h2>
         <p className="text-[#737B8C] mb-5 font-chivo  text-sm font-medium">Perfect for ERGs, leadership programs, and teams. Reserve 5–50 seats at a preferred group rate.</p>
 
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (validate()) {
-              onClose();
-              setShowSuccessRequestGroup(true)
-
-            };
-          }}
-        >
+        <form onSubmit={handleSubmit}>
           {/* seat */}
 
           <div className="mb-[14px]">
@@ -258,20 +396,175 @@ export default function QueryModal({
               className="block font-medium font-chivo text-[var(--color-nearBlack)] text-[14px]"
               style={{ marginBottom: "5px" }}
             >
+              Select cohort<span>*</span>
+            </label>
+
+
+            <button
+              type="button"
+              onClick={() => setCohortOptionBox((prev) => !prev)}
+              className={`w-full border rounded-[14px] font-chivo text-[14px] bg-[#F6F6F9] text-left px-[13px] h-[40px] text-[#3d4046] flex justify-between items-center focus:outline-none focus:ring-1 transition-all
+    ${errors.cohort
+                  ? "border-red-500 focus:ring-red-200"
+                  : "border-[#DCDEE5] focus:border-[var(--color-burgundy)] focus:ring-[var(--color-burgundy)]"
+                }`}
+            >
+              {form.cohort || "Select cohort"}
+
+              <Image
+                src="/images/arrow-down.svg"
+                alt="arrow"
+                width={14}
+                height={14}
+                className={`transition-transform ${cohortOptionBox ? "rotate-180" : ""
+                  }`}
+              />
+            </button>
+
+            {cohortOptionBox && (
+              <div className="absolute w-full z-50 mt-2">
+                <div className="bg-white rounded-[18px] shadow-lg border border-[#E5E7EB] overflow-hidden px-5">
+                  {cohorts?.map((item, index) => (
+                    <div
+                      key={item?.id}
+                      onClick={() => {
+                        setForm((p) => ({
+                          ...p,
+                          cohort: item?.name,
+                          cohortId: item?.id,
+                          program: "",
+                          programId: null,
+                          seat: "",
+                        }));
+                        setCohortOptionBox(false);
+                        setProgramOptionBox(false);
+                        setOptionBox(false);
+                        fetchSeatAvailability(item.id, item.seats_remaining);
+
+                        setErrors((prev) => ({
+                          ...prev,
+                          cohort: "",
+                          program: "",
+                          seat: "",
+                        }));
+                      }}
+                      className={`py-2 text-[14px] font-chivo text-[var(--color-nearBlack)] cursor-pointer hover:bg-[#F6F6F9]
+            ${index !== cohorts.length - 1 ? "border-b border-[#E5E7EB]" : "pb-4"}
+            ${index === 0 ? "pt-4" : ""}`}
+                    >
+                      {item?.name}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {errors.cohort && (
+              <p className="text-red-500 font-chivo text-[12px] mt-1">
+                {errors.cohort}
+              </p>
+            )}
+          </div>
+
+
+          {selectedCohortPrograms.length > 0 && (
+            <div style={{ marginBottom: "18px", position: "relative" }}>
+              <label
+                className="block font-medium font-chivo text-[var(--color-nearBlack)] text-[14px]"
+                style={{ marginBottom: "5px" }}
+              >
+                Select program<span>*</span>
+              </label>
+
+
+              <button
+                type="button"
+                onClick={() => setProgramOptionBox((prev) => !prev)}
+                className={`w-full border rounded-[14px] font-chivo text-[14px] bg-[#F6F6F9] text-left px-[13px] h-[40px] text-[#3d4046] flex justify-between items-center focus:outline-none focus:ring-1 transition-all
+    ${errors.program
+                    ? "border-red-500 focus:ring-red-200"
+                    : "border-[#DCDEE5] focus:border-[var(--color-burgundy)] focus:ring-[var(--color-burgundy)]"
+                  }`}
+              >
+                {form.program || "Select program"}
+
+                <Image
+                  src="/images/arrow-down.svg"
+                  alt="arrow"
+                  width={14}
+                  height={14}
+                  className={`transition-transform ${programOptionBox ? "rotate-180" : ""
+                    }`}
+                />
+              </button>
+
+              {programOptionBox && (
+                <div className="absolute w-full z-40 mt-2">
+                  <div className="bg-white rounded-[18px] shadow-lg border border-[#E5E7EB] overflow-hidden px-5">
+                    {selectedCohortPrograms.map((program, index) => {
+                      const programId = getProgramId(program);
+                      const programName = getProgramName(program);
+
+                      return (
+                        <div
+                          key={String(programId ?? programName)}
+                          onClick={() => {
+                            setForm((p) => ({
+                              ...p,
+                              program: programName,
+                              programId,
+                            }));
+                            setProgramOptionBox(false);
+                            setErrors((prev) => ({
+                              ...prev,
+                              program: "",
+                            }));
+                          }}
+                          className={`py-2 text-[14px] font-chivo text-[var(--color-nearBlack)] cursor-pointer hover:bg-[#F6F6F9]
+            ${index !== selectedCohortPrograms.length - 1 ? "border-b border-[#E5E7EB]" : "pb-4"}
+            ${index === 0 ? "pt-4" : ""}`}
+                        >
+                          {programName}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {errors.program && (
+                <p className="text-red-500 font-chivo text-[12px] mt-1">
+                  {errors.program}
+                </p>
+              )}
+            </div>
+          )}
+
+
+          <div style={{ marginBottom: "18px", position: "relative" }}>
+            <label
+              className="block font-medium font-chivo text-[var(--color-nearBlack)] text-[14px]"
+              style={{ marginBottom: "5px" }}
+            >
               Number of seats<span>*</span>
             </label>
 
 
             <button
               type="button"
-              onClick={handleOptionBoxToggle}
+              onClick={() => {
+                if (seatOptions.length > 0) {
+                  setOptionBox((prev) => !prev);
+                }
+              }}
+              disabled={!form.cohortId || seatAvailabilityLoading || seatOptions.length === 0}
               className={`w-full border rounded-[14px] font-chivo text-[14px] bg-[#F6F6F9] text-left px-[13px] h-[40px] text-[#3d4046] flex justify-between items-center focus:outline-none focus:ring-1 transition-all
     ${errors.seat
                   ? "border-red-500 focus:ring-red-200"
                   : "border-[#DCDEE5] focus:border-[var(--color-burgundy)] focus:ring-[var(--color-burgundy)]"
                 }`}
             >
-              {form.seat || "Select seats"}
+              {form.seat || (seatAvailabilityLoading ? "Checking seats..." : "Select seats")}
 
               <Image
                 src="/images/arrow-down.svg"
@@ -285,15 +578,8 @@ export default function QueryModal({
 
             {optionBox && (
               <div className="absolute w-full z-50 mt-2">
-                <div className="bg-white rounded-[18px] shadow-lg border border-[#E5E7EB] overflow-hidden px-5">
-                  {[
-                    "5",
-                    "10",
-                    "15",
-                    "20",
-                    "25",
-
-                  ].map((item, index) => (
+                <div className="bg-white rounded-[18px] shadow-lg border border-[#E5E7EB] overflow-hidden px-5 max-h-[220px] overflow-y-auto">
+                  {seatOptions.map((item, index) => (
                     <div
                       key={item}
                       onClick={() => {
@@ -308,7 +594,7 @@ export default function QueryModal({
                         }
                       }}
                       className={`py-2 text-[14px] font-chivo text-[var(--color-nearBlack)] cursor-pointer hover:bg-[#F6F6F9]
-            ${index !== 4 ? "border-b border-[#E5E7EB]" : "pb-4"}
+            ${index !== seatOptions.length - 1 ? "border-b border-[#E5E7EB]" : "pb-4"}
             ${index === 0 ? "pt-4" : ""}`}
                     >
                       {item}
@@ -321,6 +607,11 @@ export default function QueryModal({
             {errors.seat && (
               <p className="text-red-500 font-chivo text-[12px] mt-1">
                 {errors.seat}
+              </p>
+            )}
+            {form.cohortId && remainingSeats !== null && !errors.seat && (
+              <p className="text-[#737B8C] font-chivo text-[12px] mt-1">
+                {remainingSeats} seats remaining
               </p>
             )}
 
@@ -360,16 +651,21 @@ export default function QueryModal({
 
 
           {/* Continue */}
+          {submitError && (
+            <p className="text-red-500 font-chivo text-[12px] mb-3">{submitError}</p>
+          )}
           <button
             type="submit"
+            disabled={loading}
             className="w-full font-semibold font-chivo text-[14px] bg-burgundy text-white rounded-[14px] transition-all hover:opacity-90 active:scale-[0.99]  py-[12px] px-[13px] capitalize"
             style={{
               marginBottom: "10px",
               border: "none",
-              cursor: "pointer",
+              cursor: loading ? "not-allowed" : "pointer",
+              opacity: loading ? 0.7 : 1,
             }}
           >
-            Send Inquiry
+            {loading ? "Sending..." : "Send Inquiry"}
           </button>
         </form>
 

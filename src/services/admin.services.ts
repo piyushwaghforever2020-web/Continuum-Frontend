@@ -214,7 +214,39 @@ export const getAdminEmailListEnquiries = async (
 export const getAdminSponsorships = async (
   params: SponsorshipQueryParams = {}
 ) => {
-  const res = await api.get(`/admin/sponsorship${buildQuery(params)}`);
+  const res = await api.get(`/admin/sponsorships${buildQuery(params)}`);
+  return res.data;
+};
+
+export const markAdminSponsorshipAsPaid = async (
+  sponsorshipId: string | number
+) => {
+  const res = await api.post(`/admin/sponsorships/${sponsorshipId}/mark-paid`);
+  return res.data;
+};
+
+export const markAdminSponsorshipAsUnpaid = async (
+  sponsorshipId: string | number
+) => {
+  const res = await api.post(`/admin/sponsorships/${sponsorshipId}/mark-unpaid`);
+  return res.data;
+};
+
+export const getEmployerSponsorshipById = async (
+  sponsorshipId: string | number
+) => {
+  const sessionToken =
+    typeof window !== "undefined"
+      ? localStorage.getItem("session_token")
+      : null;
+
+  const res = await api.get(`/employer/sponsorships/${sponsorshipId}`, {
+    headers: sessionToken
+      ? {
+          Authorization: `Bearer ${sessionToken}`,
+        }
+      : undefined,
+  });
   return res.data;
 };
 
