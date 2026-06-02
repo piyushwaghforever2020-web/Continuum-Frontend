@@ -32,7 +32,8 @@ const MagicLinkVerifyContent = () => {
         );
 
         const sessionToken = getResponseValue(response.data, "session_token");
-        const redirectUrl = getResponseValue(response.data, "redirect_url");
+        const redirectUrl = response?.data?.data?.user?.role === "participant" ? `/cohort/?id=${response?.data?.data?.user?.cohort_id}` : `/employer/sponsorships/${response?.data?.data?.user?.employer_user_id}`;
+
 
         if (sessionToken) {
           localStorage.setItem("session_token", String(sessionToken));
@@ -53,7 +54,7 @@ const MagicLinkVerifyContent = () => {
         setStatus("error");
         setMessage(
           error?.response?.data?.message ||
-            "We couldn't verify this link. Please request a fresh magic link.",
+          "We couldn't verify this link. Please request a fresh magic link.",
         );
       }
     };

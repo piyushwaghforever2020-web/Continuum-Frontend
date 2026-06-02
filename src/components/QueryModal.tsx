@@ -40,6 +40,7 @@ type ProgramItem = {
 
 type Cohort = {
   id: number;
+  sync_status :string;
   name: string;
   is_active?: boolean;
   seats_remaining?: number;
@@ -150,9 +151,11 @@ export default function QueryModal({
           `${process.env.NEXT_PUBLIC_API_BASE_URL}/cohorts`,
         );
         const activeCohorts = (response?.data?.data || []).filter(
-          (cohort: Cohort) => cohort?.is_active !== false,
-        );
-
+(cohort: Cohort) =>
+  cohort?.is_active !== false &&
+  cohort?.sync_status !== "closed" &&
+  cohort?.sync_status !== "full" &&
+  cohort?.sync_status !==  "draft"      );
         setCohorts(activeCohorts);
       } catch (error) {
         console.error("Error fetching cohorts", error);

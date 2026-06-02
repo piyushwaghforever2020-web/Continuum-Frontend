@@ -4,61 +4,46 @@
   --employer-cream: #f6efe5;
   --employer-gold: #c99b5f;
   --employer-burgundy: #5a1729;
+  height: 100vh;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.shell :global(.admin-main) {
+  height: 100vh;
+  min-height: 0;
+}
+
+.shell :global(.admin-content) {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .sidebar {
-  width: 250px;
-  min-width: 250px;
-  min-height: 100vh;
-  position: sticky;
-  top: 0;
-  background: var(--employer-dark);
-  color: #fff;
-  padding: 28px 18px;
+  flex-shrink: 0;
 }
 
-.logo {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  margin: 0 0 42px;
-  padding: 0 10px;
+.sidebarButton {
+  width: 100%;
+  border: 0;
   font-family: var(--font-chivo), sans-serif;
-  letter-spacing: 6px;
-  text-transform: lowercase;
-  font-size: 23px;
-  line-height: 1;
+  cursor: pointer;
 }
 
-.logo span {
-  letter-spacing: 5px;
-  text-transform: uppercase;
-  font-size: 8px;
-  opacity: 0.78;
+.sidebarButtonActive {
+  background: var(--color-warmCreamy);
+  color: var(--color-burgundy);
 }
 
-.nav {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+.sidebarButtonIdle {
+  background: transparent;
+  color: #d9d5dd;
 }
 
-.navItem {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-height: 42px;
-  padding: 0 14px;
-  border-radius: 6px;
-  color: rgba(255, 255, 255, 0.84);
-  font-family: var(--font-chivo), sans-serif;
-  font-size: 13px;
-  font-weight: 500;
-}
-
-.navItemActive {
-  background: var(--employer-cream);
-  color: var(--employer-darker);
+.sidebarButtonIdle:hover {
+  background: var(--color-warmCreamy);
+  color: var(--color-burgundy);
 }
 
 .hero {
@@ -196,8 +181,11 @@
 
 .donutWrap {
   min-height: 240px;
-  display: grid;
-  place-items: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
 }
 
 .donut {
@@ -233,6 +221,40 @@
   color: #837975;
   font-family: var(--font-chivo), sans-serif;
   font-size: 11px;
+}
+
+.donutLegend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px 16px;
+  color: #4b3c37;
+  font-family: var(--font-chivo), sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.donutLegend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
+}
+
+.assignedDot,
+.availableDot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+
+.assignedDot {
+  background: #5a1729;
+}
+
+.availableDot {
+  background: #ece9e7;
+  border: 1px solid #d9d2ce;
 }
 
 .lowerGrid {
@@ -289,12 +311,278 @@
   white-space: nowrap;
 }
 
-@media (max-width: 1100px) {
-  .sidebar {
-    width: 210px;
-    min-width: 210px;
-  }
+.seatPageHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
 
+.inviteButton {
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  border: 0;
+  border-radius: 8px;
+  padding: 0 14px 0 16px;
+  background: var(--employer-darker);
+  color: #fff;
+  font-family: var(--font-chivo), sans-serif;
+  font-size: 12px;
+  line-height: 1;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.inviteButton span {
+  font-size: 20px;
+  line-height: 1;
+  font-weight: 700;
+}
+
+.inviteButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.rowInviteButton {
+  min-height: 30px;
+  border: 0;
+  border-radius: 8px;
+  padding: 0 12px;
+  background: var(--employer-darker);
+  color: #fff;
+  font-family: var(--font-chivo), sans-serif;
+  font-size: 12px;
+  line-height: 1;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.emptyAction {
+  color: #8d8581;
+  font-family: var(--font-chivo), sans-serif;
+  font-size: 13px;
+}
+
+.seatEmailLink {
+  color: var(--color-nearBlack);
+  font-family: var(--font-chivo), sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  word-break: break-word;
+}
+
+.seatEmailLink:hover {
+  text-decoration: underline;
+}
+
+.inviteModal {
+  position: relative;
+  width: min(100%, 500px);
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+  border-radius: 10px;
+  background: #f8f9fc;
+  padding: 24px 28px 28px;
+  box-shadow: 0 20px 60px rgba(18, 12, 28, 0.26);
+}
+
+.inviteModalClose {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #5f6673;
+}
+
+.inviteModalHeader h3 {
+  margin: 0;
+  color: #1f2430;
+  font-family: var(--font-chivo), sans-serif;
+  font-size: 20px;
+  line-height: 1.25;
+  font-weight: 700;
+}
+
+.inviteModalHeader p {
+  max-width: 410px;
+  margin: 6px 0 18px;
+  color: #626873;
+  font-family: var(--font-chivo), sans-serif;
+  font-size: 15px;
+  line-height: 1.35;
+}
+
+.inviteModalFields {
+  display: grid;
+  gap: 14px;
+}
+
+.inviteField {
+  display: grid;
+  gap: 7px;
+}
+
+.inviteField span {
+  color: #1f2430;
+  font-family: var(--font-chivo), sans-serif;
+  font-size: 14px;
+  line-height: 1.2;
+  font-weight: 600;
+}
+
+.inviteField input,
+.inviteField select {
+  width: 100%;
+  height: 44px;
+  border: 1px solid #d9dde7;
+  border-radius: 7px;
+  background: #f8f9fc;
+  padding: 0 14px;
+  color: #323846;
+  font-family: var(--font-chivo), sans-serif;
+  font-size: 14px;
+  outline: none;
+}
+
+.inviteField input::placeholder {
+  color: #7f8897;
+}
+
+.inviteSelectWrap {
+  position: relative;
+}
+
+.inviteSelectButton {
+  width: 100%;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid #d9dde7;
+  border-radius: 7px;
+  background: #f8f9fc;
+  padding: 0 14px;
+  color: #323846;
+  font-family: var(--font-chivo), sans-serif;
+  font-size: 14px;
+  text-align: left;
+  outline: none;
+}
+
+.inviteSelectButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.inviteSelectArrowOpen {
+  transform: rotate(180deg);
+}
+
+.inviteSelectMenu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 20;
+  max-height: 190px;
+  overflow-y: auto;
+  border: 1px solid #e2e5ec;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 14px 30px rgba(18, 12, 28, 0.12);
+}
+
+.inviteSelectOption {
+  width: 100%;
+  min-height: 40px;
+  border: 0;
+  border-bottom: 1px solid #edf0f5;
+  background: transparent;
+  padding: 0 14px;
+  color: #626873;
+  font-family: var(--font-chivo), sans-serif;
+  font-size: 14px;
+  text-align: left;
+}
+
+.inviteSelectOption:hover {
+  background: #f6f6f9;
+  color: #1f2430;
+}
+
+.inviteSelectOption:last-child {
+  border-bottom: 0;
+}
+
+.inviteSelectEmpty {
+  margin: 0;
+  padding: 12px 14px;
+  color: #7f8897;
+  font-family: var(--font-chivo), sans-serif;
+  font-size: 13px;
+}
+
+.inviteError {
+  margin: 12px 0 0;
+  color: #c42626;
+  font-family: var(--font-chivo), sans-serif;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.inviteModalActions {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.inviteCancelButton,
+.inviteSubmitButton {
+  min-height: 44px;
+  border-radius: 7px;
+  font-family: var(--font-chivo), sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.inviteCancelButton {
+  border: 1px solid #d9dde7;
+  background: transparent;
+  color: #111827;
+}
+
+.inviteSubmitButton {
+  border: 0;
+  background: var(--employer-burgundy);
+  color: #fff;
+}
+
+.inviteCancelButton:disabled,
+.inviteSubmitButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.unassignedText {
+  color: #7d7580;
+  font-style: italic;
+}
+
+@media (max-width: 1100px) {
   .statsGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -303,23 +591,14 @@
   .lowerGrid {
     grid-template-columns: 1fr;
   }
+
+  .seatPageHeader {
+    align-items: flex-start;
+    flex-direction: column;
+  }
 }
 
 @media (max-width: 760px) {
-  .shell {
-    flex-direction: column;
-  }
-
-  .sidebar {
-    width: 100%;
-    min-width: 0;
-    min-height: auto;
-    position: relative;
-  }
-
-  .logo {
-    margin-bottom: 20px;
-  }
 
   .hero,
   .statTop,
@@ -341,5 +620,13 @@
 
   .statValue {
     margin-left: 0;
+  }
+
+  .inviteButton {
+    width: 100%;
+  }
+
+  .inviteModalActions {
+    grid-template-columns: 1fr;
   }
 }

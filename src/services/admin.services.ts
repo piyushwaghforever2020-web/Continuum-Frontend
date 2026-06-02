@@ -144,6 +144,11 @@ export const getAdminCohorts = async (params: CohortsQueryParams = {}) => {
   return res.data;
 };
 
+export const getPublicCohorts = async () => {
+  const res = await api.get("/cohorts");
+  return res.data;
+};
+
 export const createAdminCohort = async (payload: Record<string, unknown>) => {
   const res = await api.post("/admin/cohorts", payload);
   return res.data;
@@ -247,6 +252,62 @@ export const getEmployerSponsorshipById = async (
         }
       : undefined,
   });
+  return res.data;
+};
+
+export const getEmployerSponsorshipSeats = async (
+  sponsorshipId: string | number,
+  search?: string,
+  status?: string
+) => {
+  const sessionToken =
+    typeof window !== "undefined"
+      ? localStorage.getItem("session_token")
+      : null;
+
+  const params: Record<string, string> = {};
+  if (search) params.search = search;
+  if (status) params.status = status;
+
+  const res = await api.get(`/employer/sponsorships/${sponsorshipId}/seats`, {
+    params,
+    headers: sessionToken
+      ? {
+          Authorization: `Bearer ${sessionToken}`,
+        }
+      : undefined,
+  });
+  return res.data;
+};
+
+export type AssignEmployerSponsorshipSeatPayload = {
+  participant_name: string;
+  participant_email: string;
+  cohort_id?: string | number;
+  program_id?: string | number | null;
+};
+
+export const assignEmployerSponsorshipSeat = async (
+  sponsorshipId: string | number,
+  seatId: string | number,
+  payload: AssignEmployerSponsorshipSeatPayload
+) => {
+  const sessionToken =
+    typeof window !== "undefined"
+      ? localStorage.getItem("session_token")
+      : null;
+
+  const res = await api.post(
+    `/employer/sponsorships/${sponsorshipId}/seats/${seatId}/assign`,
+    payload,
+    {
+      headers: sessionToken
+        ? {
+            Authorization: `Bearer ${sessionToken}`,
+          }
+        : undefined,
+    }
+  );
   return res.data;
 };
 

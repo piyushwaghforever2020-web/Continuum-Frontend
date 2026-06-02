@@ -31,6 +31,7 @@ type AdminTableProps<T> = {
   filters?: AdminTableFilter[];
   actionLabel?: string;
   showToolbar?: boolean;
+  showAction?: boolean;
   footer?: ReactNode;
   enablePagination?: boolean;
   defaultRowsPerPage?: 10 | 20 | 30;
@@ -101,6 +102,7 @@ export default function AdminTable<T>({
   filters = [],
   actionLabel = "Export CSX",
   showToolbar = true,
+  showAction = true,
   footer,
   enablePagination = true,
   defaultRowsPerPage = 10,
@@ -299,15 +301,17 @@ export default function AdminTable<T>({
               );
             })}
 
-            <button
-              type="button"
-              className="admin-table-button"
-              onClick={onActionClick}
-              disabled={isActionLoading}
-            >
-              <FiDownload size={14} />
-              <span className="font-chivo text-sm font-normal text-[var(--color-nearBlack)]">{isActionLoading ? "Exporting..." : actionLabel}</span>
-            </button>
+            {showAction ? (
+              <button
+                type="button"
+                className="admin-table-button"
+                onClick={onActionClick}
+                disabled={isActionLoading}
+              >
+                <FiDownload size={14} />
+                <span className="font-chivo text-sm font-normal text-[var(--color-nearBlack)]">{isActionLoading ? "Exporting..." : actionLabel}</span>
+              </button>
+            ) : null}
           </div>
         </div>
       )}
