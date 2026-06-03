@@ -32,6 +32,7 @@ type AdminTableProps<T> = {
   actionLabel?: string;
   showToolbar?: boolean;
   showAction?: boolean;
+  showSearch?: boolean;
   footer?: ReactNode;
   enablePagination?: boolean;
   defaultRowsPerPage?: 10 | 20 | 30;
@@ -103,6 +104,7 @@ export default function AdminTable<T>({
   actionLabel = "Export CSX",
   showToolbar = true,
   showAction = true,
+  showSearch = true,
   footer,
   enablePagination = true,
   defaultRowsPerPage = 10,
@@ -230,14 +232,16 @@ export default function AdminTable<T>({
           <h3 className="admin-section-title">{title}</h3>
 
           <div className="admin-table-tools" ref={filtersContainerRef}>
-            <label className="admin-search">
-              <FiSearch size={16} />
-              <input
-                type="text"
-                placeholder={searchPlaceholder}
-                onChange={(e) => onSearchChange?.(e.target.value)}
-              />
-            </label>
+            {showSearch ? (
+              <label className="admin-search">
+                <FiSearch size={16} />
+                <input
+                  type="text"
+                  placeholder={searchPlaceholder}
+                  onChange={(e) => onSearchChange?.(e.target.value)}
+                />
+              </label>
+            ) : null}
 
             {filters.map((filter, index) => {
               const filterKey = `${filter.label}-${index}`;
@@ -246,17 +250,7 @@ export default function AdminTable<T>({
 
               return (
                 <div key={filterKey} style={{ position: "relative" }}>
-                  {/* <button
-                    type="button"
-                    className="admin-table-button !max-w-[130px] "
-                    onClick={() => {
-                      if (!hasOptions) return;
-                      setOpenFilterKey(isOpen ? null : filterKey);
-                    }}
-                  >
-                    <span className="font-chivo text-sm font-normal text-[#261736]">{resolveFilterLabel(filter)}</span>
-                    <FiChevronDown size={14} />
-                  </button> */}
+
 
                   <button
                     type="button"
@@ -268,8 +262,8 @@ export default function AdminTable<T>({
                   >
                     <span
                       className={`font-chivo text-sm font-normal text-[var(--color-nearBlack)] ${filter.value === ""
-                          ? ""
-                          : "truncate flex-1 min-w-0"
+                        ? ""
+                        : "truncate flex-1 min-w-0"
                         }`}
                     >
                       {resolveFilterLabel(filter)}

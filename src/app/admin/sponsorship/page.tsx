@@ -372,7 +372,7 @@ export default function SponsorshipPage() {
                   <FiSearch size={16} />
                   <input
                     type="text"
-                    placeholder="Search by employer, company, email, cohort, or program..."
+                    placeholder="Search by employer name and  email"  
                     value={search}
                     onChange={(event) => {
                       setSearch(event.target.value);
