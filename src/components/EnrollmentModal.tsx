@@ -75,6 +75,22 @@ export default function EnrollmentModal({
 
   const [apiError, setApiError] = useState("");
   const [apiErrorEnrollment, setapiErrorEnrollment] = useState("");
+  const [toast, setToast] = useState<{
+    message: string;
+    tone: "success" | "error";
+  } | null>(null);
+
+  useEffect(() => {
+    if (!toast) return;
+
+    const timer = window.setTimeout(() => {
+      setToast(null);
+    }, 3000);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [toast]);
 
   const [form, setForm] = useState({
     cohort: "",
@@ -207,12 +223,27 @@ export default function EnrollmentModal({
       );
       const navigate_URL = response?.data?.data?.checkout_url;
       if (navigate_URL) {
-        window.location.href = navigate_URL;
+        setToast({
+          message: response?.data?.message || "Redirecting to checkout...",
+          tone: "success",
+        });
+        setTimeout(() => {
+          window.location.href = navigate_URL;
+        }, 1500);
+      } else {
+        setToast({
+          message: "Unable to start checkout session.",
+          tone: "error",
+        });
       }
     } catch (error: any) {
       console.error(error);
-      setapiErrorEnrollment(error?.response?.data?.message || "Something went wrong");
-      // setShowErrorEnrollment(true);
+      const message = error?.response?.data?.message || "Something went wrong";
+      setapiErrorEnrollment(message);
+      setToast({
+        message,
+        tone: "error",
+      });
     } finally {
       setLoadingEnrollment(false);
     }
@@ -255,19 +286,33 @@ export default function EnrollmentModal({
       );
 
       if (response?.data?.success === false) {
-        setApiError(response?.data?.message || "Something went wrong");
+        const message = response?.data?.message || "Something went wrong";
+        setApiError(message);
+        setToast({
+          message,
+          tone: "error",
+        });
         return;
       }
 
-      // ✅ success
-      // setShowSuccess(true);
-      setStep(2);
+      setToast({
+        message: response?.data?.message || "Application submitted successfully.",
+        tone: "success",
+      });
+
+      setTimeout(() => {
+        setStep(2);
+      }, 1000);
     } catch (error: any) {
       const message =
         error?.response?.data?.message ||
         error?.response?.data?.data?.details?.[0] ||
         "Something went wrong";
       setApiError(message);
+      setToast({
+        message,
+        tone: "error",
+      });
     } finally {
       setLoading(false);
     }
@@ -342,6 +387,15 @@ export default function EnrollmentModal({
         if (e.target === e.currentTarget) onClose();
       }}
     >
+      {toast ? (
+        <div
+          className={`admin-toast admin-toast--${toast.tone}`}
+          role="status"
+          aria-live="polite"
+        >
+          {toast.message}
+        </div>
+      ) : null}
       <div
         ref={modalRef}
         className={`relative bg-white rounded-[20px] shadow-2xl overflow-y-auto w-[512px] ${inter.className}`}

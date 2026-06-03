@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { FormEvent } from "react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { FiArrowLeft, FiPlus, FiTrash2 } from "react-icons/fi";
 import AdminHeader from "@/components/AdminHeader";
 import Sidebar from "@/components/Sidebar";
@@ -351,6 +351,22 @@ export default function EditCohortClient() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [submitMessage, setSubmitMessage] = useState("");
+  const [toast, setToast] = useState<{
+    message: string;
+    tone: "success" | "error";
+  } | null>(null);
+
+  useEffect(() => {
+    if (!toast) return;
+
+    const timer = window.setTimeout(() => {
+      setToast(null);
+    }, 3000);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [toast]);
 
   const pageTitle = useMemo(() => {
     if (isLoading) return "Edit Cohort";
@@ -659,11 +675,24 @@ export default function EditCohortClient() {
           .filter((row) => row.program_id || row.program_name || row.program_description);
       }
 
-      await updateAdminCohort(cohortId, payload);
-      router.replace("/admin/cohorts");
-      router.refresh();
+      const response = await updateAdminCohort(cohortId, payload);
+
+      setToast({
+        message: response?.message || response?.data?.message || "Cohort updated successfully.",
+        tone: "success",
+      });
+
+      setTimeout(() => {
+        router.replace("/admin/cohorts");
+        router.refresh();
+      }, 1500);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to update cohort.");
+      const message = err instanceof Error ? err.message : "Failed to update cohort.";
+      setError(message);
+      setToast({
+        message,
+        tone: "error",
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -671,6 +700,16 @@ export default function EditCohortClient() {
 
   return (
     <div className="admin-page">
+      {toast ? (
+        <div
+          className={`admin-toast admin-toast--${toast.tone}`}
+          role="status"
+          aria-live="polite"
+        >
+          {toast.message}
+        </div>
+      ) : null}
+
       <Sidebar />
 
       <div className="admin-main">

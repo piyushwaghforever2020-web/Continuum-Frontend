@@ -183,6 +183,22 @@ export default function SponsorshipPage() {
   const [updatingSponsorshipId, setUpdatingSponsorshipId] = useState<
     string | number | null
   >(null);
+  const [toast, setToast] = useState<{
+    message: string;
+    tone: "success" | "error";
+  } | null>(null);
+
+  useEffect(() => {
+    if (!toast) return;
+
+    const timer = window.setTimeout(() => {
+      setToast(null);
+    }, 3000);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [toast]);
 
   useEffect(() => {
     const timeout = window.setTimeout(() => {
@@ -235,19 +251,35 @@ export default function SponsorshipPage() {
       setUpdatingSponsorshipId(row.id);
       setError("");
 
+      let response;
       if (isPaid) {
-        await markAdminSponsorshipAsUnpaid(row.id);
+        response = await markAdminSponsorshipAsUnpaid(row.id);
+        setToast({
+          message: response?.message || response?.data?.message || "Sponsorship marked as unpaid successfully.",
+          tone: "success",
+        });
       } else {
-        await markAdminSponsorshipAsPaid(row.id);
+        response = await markAdminSponsorshipAsPaid(row.id);
+        setToast({
+          message: response?.message || response?.data?.message || "Sponsorship marked as paid successfully.",
+          tone: "success",
+        });
       }
 
       await fetchSponsorships({ showLoader: false });
     } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Failed to update sponsorship status."
-      );
+      const message =
+        err && typeof err === "object" && "response" in err
+          ? (err as any).response?.data?.message || (err as any).response?.data?.data?.details?.[0]
+          : err instanceof Error
+            ? err.message
+            : "Failed to update status.";
+
+      setError(message);
+      setToast({
+        message,
+        tone: "error",
+      });
     } finally {
       setUpdatingSponsorshipId(null);
     }
@@ -350,6 +382,16 @@ export default function SponsorshipPage() {
 
   return (
     <div className="admin-page">
+      {toast ? (
+        <div
+          className={`admin-toast admin-toast--${toast.tone}`}
+          role="status"
+          aria-live="polite"
+        >
+          {toast.message}
+        </div>
+      ) : null}
+
       <Sidebar />
 
       <div className="admin-main">

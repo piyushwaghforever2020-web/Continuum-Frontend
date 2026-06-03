@@ -546,6 +546,22 @@ export default function ParticipantsPage() {
   const [selectedParticipant, setSelectedParticipant] = useState<ParticipantRow | null>(null);
   const [participants, setParticipants] = useState<ParticipantRow[]>([]);
   const [togglingId, setTogglingId] = useState<string | number | null>(null);
+  const [toast, setToast] = useState<{
+    message: string;
+    tone: "success" | "error";
+  } | null>(null);
+
+  useEffect(() => {
+    if (!toast) return;
+
+    const timer = window.setTimeout(() => {
+      setToast(null);
+    }, 3000);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [toast]);
 
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -648,12 +664,27 @@ export default function ParticipantsPage() {
     try {
       setTogglingId(id);
       const newStatus = !currentStatus;
-      await updateAdminParticipantStatus(id, newStatus);
+      const response = await updateAdminParticipantStatus(id, newStatus);
+
+      setToast({
+        message: response?.message || response?.data?.message || "Participant status updated successfully.",
+        tone: "success",
+      });
 
       // Re-fetch data to show updated status from server
       await loadParticipants();
     } catch (error) {
       console.error("Failed to update participant status:", error);
+      const message =
+        error && typeof error === "object" && "response" in error
+          ? (error as any).response?.data?.message || (error as any).response?.data?.data?.details?.[0]
+          : error instanceof Error
+            ? error.message
+            : "Failed to update status.";
+      setToast({
+        message,
+        tone: "error",
+      });
     } finally {
       setTogglingId(null);
     }
@@ -825,6 +856,16 @@ export default function ParticipantsPage() {
 
   return (
     <div className="admin-page">
+      {toast ? (
+        <div
+          className={`admin-toast admin-toast--${toast.tone}`}
+          role="status"
+          aria-live="polite"
+        >
+          {toast.message}
+        </div>
+      ) : null}
+
       <Sidebar />
 
       <div className="admin-main">
