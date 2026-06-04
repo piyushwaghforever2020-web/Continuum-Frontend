@@ -84,6 +84,19 @@ type InviteCohort = {
   programs?: ProgramItem[];
 };
 
+type SponsorshipTableRow = {
+  id: string | number;
+  cohortName: string;
+  status: string;
+  totalSeats: number;
+  availableSeats: number;
+  assignedSeats: number;
+  activeSeats: number;
+  amount: number;
+  currency: string;
+  paidAt: string;
+};
+
 type SponsorshipDashboard = {
   companyName: string;
   employerName: string;
@@ -103,6 +116,7 @@ type SponsorshipDashboard = {
     assignedSeats: number[];
     activeSeats: number[];
   };
+  sponsorshipsList: SponsorshipTableRow[];
 };
 
 const emptyDashboard: SponsorshipDashboard = {
@@ -124,6 +138,7 @@ const emptyDashboard: SponsorshipDashboard = {
     assignedSeats: [],
     activeSeats: [],
   },
+  sponsorshipsList: [],
 };
 
 const emptySeatManagementData: SeatManagementData = {
@@ -332,6 +347,25 @@ function normalizeSponsorshipResponse(payload: unknown): SponsorshipDashboard {
     ? asArray(trendRaw.active_seats).map((v) => asNumber(v))
     : trendLabels.map(() => 0);
 
+  const sponsorshipsListRaw = asArray(rawSummary.sponsorships);
+  const sponsorshipsList: SponsorshipTableRow[] = sponsorshipsListRaw.map((item) => {
+    const rawItem = asRecord(item);
+    const sp = asRecord(rawItem.sponsorship);
+    const co = asRecord(rawItem.cohort);
+    return {
+      id: asText(sp.id, "-"),
+      cohortName: asText(co.name, "-"),
+      status: formatStatus(sp.status ?? "unknown"),
+      totalSeats: asNumber(sp.total_seats),
+      availableSeats: asNumber(sp.available_seats),
+      assignedSeats: asNumber(sp.assigned_seats),
+      activeSeats: asNumber(sp.active_seats),
+      amount: asNumber(sp.amount),
+      currency: asText(sp.currency, "usd").toUpperCase(),
+      paidAt: sp.paid_at ? formatSeatDate(sp.paid_at) : "-",
+    };
+  });
+
   return {
     companyName: asText(
       employer.company_name ?? employer.company ?? data.company_name,
@@ -357,6 +391,7 @@ function normalizeSponsorshipResponse(payload: unknown): SponsorshipDashboard {
       assignedSeats: trendAssigned,
       activeSeats: trendActive,
     },
+    sponsorshipsList,
   };
 }
 
@@ -668,115 +703,7 @@ function InviteParticipantModal({
             />
           </label>
 
-          {/* <div className={styles.inviteField}>
-            <span>Select a cohort</span>
-            <div className={styles.inviteSelectWrap}>
-              <button
-                type="button"
-                className={styles.inviteSelectButton}
-                onClick={() => setCohortOptionBox((current) => !current)}
-                disabled={isCohortsLoading}
-              >
-                {form.cohort ||
-                  (isCohortsLoading ? "Loading cohorts..." : "Select option")}
-                <Image
-                  src="/images/arrow-down.svg"
-                  alt=""
-                  width={14}
-                  height={14}
-                  className={cohortOptionBox ? styles.inviteSelectArrowOpen : ""}
-                />
-              </button>
-
-              {cohortOptionBox ? (
-                <div className={styles.inviteSelectMenu}>
-                  {cohorts.length > 0 ? (
-                    cohorts.map((item) => (
-                      <button
-                        key={item.id}
-                        type="button"
-                        className={styles.inviteSelectOption}
-                        onClick={() => {
-                          setForm((current) => ({
-                            ...current,
-                            cohort: item.name,
-                            cohortId: item.id,
-                            program: "",
-                            programId: null,
-                          }));
-                          setCohortOptionBox(false);
-                          setProgramOptionBox(false);
-                          if (formError) {
-                            setFormError("");
-                          }
-                        }}
-                      >
-                        {item.name}
-                      </button>
-                    ))
-                  ) : (
-                    <p className={styles.inviteSelectEmpty}>
-                      No cohorts available
-                    </p>
-                  )}
-                </div>
-              ) : null}
-            </div>
-          </div>
-
-          {selectedCohortPrograms.length > 0 ? (
-            <div className={styles.inviteField}>
-              <span>Select a program</span>
-              <div className={styles.inviteSelectWrap}>
-                <button
-                  type="button"
-                  className={styles.inviteSelectButton}
-                  onClick={() => setProgramOptionBox((current) => !current)}
-                >
-                  {form.program || "Select program"}
-                  <Image
-                    src="/images/arrow-down.svg"
-                    alt=""
-                    width={14}
-                    height={14}
-                    className={
-                      programOptionBox ? styles.inviteSelectArrowOpen : ""
-                    }
-                  />
-                </button>
-
-                {programOptionBox ? (
-                  <div className={styles.inviteSelectMenu}>
-                    {selectedCohortPrograms.map((program) => {
-                      const programId = getProgramId(program);
-                      const programName = getProgramName(program);
-
-                      return (
-                        <button
-                          key={String(programId ?? programName)}
-                          type="button"
-                          className={styles.inviteSelectOption}
-                          onClick={() => {
-                            setForm((current) => ({
-                              ...current,
-                              program: programName,
-                              programId,
-                            }));
-                            setProgramOptionBox(false);
-                            if (formError) {
-                              setFormError("");
-                            }
-                          }}
-                        >
-                          {programName}
-                        </button>
-                      );
-                    })}
-                  </div>
-                ) : null}
-              </div>
-            </div>
-          ) : null} */}
+          \
         </div>
 
         {formError ? <p className={styles.inviteError}>{formError}</p> : null}
@@ -911,10 +838,10 @@ function SeatManagementView({
         onSearchChange={onSearchChange}
         filters={[
           {
-            label: "All Statuses",
+            label: "All Status",
             value: status,
             options: [
-              { label: "All Statuses", value: "" },
+              { label: "All Status", value: "" },
               { label: "Active", value: "Active" },
               { label: "Assigned", value: "Assigned" },
               { label: "Available", value: "Available" },
@@ -1316,6 +1243,33 @@ export default function EmployerSponsorshipClient({
                     </div>
                   </div>
                 </article>
+              </section>
+
+              <section className="">
+                <AdminTable
+                  title="Sponsorships"
+                  columns={[
+                    { key: "id", header: "ID", render: (row) => row.id },
+                    { key: "cohortName", header: "Cohort", render: (row) => row.cohortName },
+                    {
+                      key: "status", header: "Status", render: (row) => (
+                        <AdminStatusBadge tone={row.status.toLowerCase() === "paid" ? "success" : undefined}>
+                          {row.status}
+                        </AdminStatusBadge>
+                      )
+                    },
+                    { key: "totalSeats", header: "Total Seats", render: (row) => row.totalSeats },
+                    { key: "availableSeats", header: "Available", render: (row) => row.availableSeats },
+                    { key: "assignedSeats", header: "Assigned", render: (row) => row.assignedSeats },
+                    { key: "activeSeats", header: "Active", render: (row) => row.activeSeats },
+                    { key: "amount", header: "Amount", render: (row) => `${row.amount} ${row.currency}` },
+                    { key: "paidAt", header: "Paid At", render: (row) => row.paidAt },
+                  ]}
+                  rows={dashboard.sponsorshipsList}
+                  showAction={false}
+                  showSearch={false}
+                  enablePagination={false}
+                />
               </section>
             </div>
           )}
