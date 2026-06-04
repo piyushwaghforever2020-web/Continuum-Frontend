@@ -16,7 +16,7 @@ const menuItems = [
   { icon: "/admin/dach_light_icons2.svg", activeIcon: "/admin/dash_dark_icon2.svg", name: "Cohorts", path: "/admin/cohorts", disable: false },
   { icon: "/admin/dach_light_icons1.svg", activeIcon: "/admin/dash_dark_icon1.svg", name: "Payments", path: "/admin/payments", disable: false },
   { icon: "/admin/dach_light_icon4.svg", activeIcon: "/admin/dash_dark_icon4.svg", name: "Leads", path: "/admin/leads", disable: false },
-  { icon: "/admin/sponsorship.png", activeIcon: "/admin/sponsorship.png", name: "Sponsorship", path: "/admin/sponsorship", disable: false },
+  { icon: "/admin/dach_light_icons5.svg", activeIcon: "/admin/dash_dark_icon5.svg", name: "Sponsorship", path: "/admin/sponsorship", disable: false },
 ];
 
 export default function Sidebar() {
