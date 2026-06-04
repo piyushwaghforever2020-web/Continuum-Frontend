@@ -310,6 +310,22 @@ export default function CohortsPage() {
   const [cohortsError, setCohortsError] = useState("");
   const [selectedCohortId, setSelectedCohortId] = useState<string | null>(null);
   const [togglingId, setTogglingId] = useState<string | null>(null);
+  const [toast, setToast] = useState<{
+    message: string;
+    tone: "success" | "error";
+  } | null>(null);
+
+  useEffect(() => {
+    if (!toast) return;
+
+    const timer = window.setTimeout(() => {
+      setToast(null);
+    }, 3000);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [toast]);
 
   const loadCohorts = useCallback(async () => {
     try {
@@ -340,12 +356,27 @@ export default function CohortsPage() {
     try {
       setTogglingId(id);
       const newStatus = !currentStatus;
-      await updateAdminCohortStatus(id, newStatus);
+      const response = await updateAdminCohortStatus(id, newStatus);
+
+      setToast({
+        message: response?.message || response?.data?.message || "Cohort status updated successfully.",
+        tone: "success",
+      });
 
       // Re-fetch data to show updated status from server
       await loadCohorts();
     } catch (error) {
       console.error("Failed to update cohort status:", error);
+      const message =
+        error && typeof error === "object" && "response" in error
+          ? (error as any).response?.data?.message || (error as any).response?.data?.data?.details?.[0]
+          : error instanceof Error
+            ? error.message
+            : "Failed to update status.";
+      setToast({
+        message,
+        tone: "error",
+      });
     } finally {
       setTogglingId(null);
     }
@@ -569,6 +600,16 @@ export default function CohortsPage() {
 
   return (
     <div className="admin-page">
+      {toast ? (
+        <div
+          className={`admin-toast admin-toast--${toast.tone}`}
+          role="status"
+          aria-live="polite"
+        >
+          {toast.message}
+        </div>
+      ) : null}
+
       <Sidebar />
 
       <div className="admin-main">

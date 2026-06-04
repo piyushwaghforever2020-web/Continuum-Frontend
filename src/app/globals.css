@@ -858,3 +858,31 @@ a {
 .font-Playfair {
   font-family: 'Playfair Display' !important;
 }
+
+.admin-toast {
+  position: fixed;
+  top: 1.5rem;
+  right: 1.5rem;
+  z-index: 9999;
+  min-width: 260px;
+  max-width: 360px;
+  padding: 0.9rem 1rem;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  box-shadow: 0 16px 40px rgba(28, 22, 42, 0.16);
+  font-family: var(--font-chivo), sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.admin-toast--success {
+  color: #0f6a33;
+  background: #edf9f1;
+  border-color: #b7e5c4;
+}
+
+.admin-toast--error {
+  color: #a12626;
+  background: #fff1f1;
+  border-color: #f1c0c0;
+}

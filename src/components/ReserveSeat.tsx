@@ -56,7 +56,23 @@ export default function ReserveModal({
   const [step, setStep] = useState<1 | 2>(1);
   const [charCount, setCharCount] = useState(0);
   const [optionBox, setOptionBox] = useState(false);
-  const [cohorts, setCohorts] = useState<Cohort[]>([])
+  const [cohorts, setCohorts] = useState<Cohort[]>([]);
+  const [toast, setToast] = useState<{
+    message: string;
+    tone: "success" | "error";
+  } | null>(null);
+
+  useEffect(() => {
+    if (!toast) return;
+
+    const timer = window.setTimeout(() => {
+      setToast(null);
+    }, 3000);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [toast]);
 
   const [form, setForm] = useState({
     cohort: "",
@@ -99,7 +115,7 @@ export default function ReserveModal({
 
   const modalRef = useRef<HTMLDivElement>(null);
   const firstInputRef = useRef<HTMLInputElement>(null);
-
+  
   useEffect(() => {
 
     const getCohorts = async () => {
@@ -216,18 +232,29 @@ export default function ReserveModal({
         billing_zip_code: form.billingZipCode.trim(),
       };
 
-      await axios.post(
+      const response = await axios.post(
         `${process.env.NEXT_PUBLIC_API_BASE_URL}/applications/cohort/register`,
         payload,
       );
 
-      setEmployerFundedSuccess(true);
+      setToast({
+        message: response?.data?.message || "Registration submitted successfully.",
+        tone: "success",
+      });
+
+      setTimeout(() => {
+        setEmployerFundedSuccess(true);
+      }, 1000);
     } catch (error: any) {
       const message =
         error?.response?.data?.message ||
         error?.response?.data?.data?.details?.[0] ||
         "We couldn't submit your employer-funded registration. Please try again.";
       setApiError(message);
+      setToast({
+        message,
+        tone: "error",
+      });
     } finally {
       setLoading(false);
     }
@@ -243,6 +270,15 @@ export default function ReserveModal({
       aria-modal="true"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
+      {toast ? (
+        <div
+          className={`admin-toast admin-toast--${toast.tone}`}
+          role="status"
+          aria-live="polite"
+        >
+          {toast.message}
+        </div>
+      ) : null}
       <div
         ref={modalRef}
         className={`relative bg-white rounded-[20px] shadow-2xl overflow-y-auto w-[512px] ${inter.className}`}

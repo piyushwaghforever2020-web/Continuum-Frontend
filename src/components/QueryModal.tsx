@@ -72,6 +72,22 @@ export default function QueryModal({
   const [remainingSeats, setRemainingSeats] = useState<number | null>(null);
   const [seatAvailabilityLoading, setSeatAvailabilityLoading] = useState(false);
   const [submitError, setSubmitError] = useState("");
+  const [toast, setToast] = useState<{
+    message: string;
+    tone: "success" | "error";
+  } | null>(null);
+
+  useEffect(() => {
+    if (!toast) return;
+
+    const timer = window.setTimeout(() => {
+      setToast(null);
+    }, 3000);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [toast]);
 
   const [form, setForm] = useState({
     name: "",
@@ -151,11 +167,12 @@ export default function QueryModal({
           `${process.env.NEXT_PUBLIC_API_BASE_URL}/cohorts`,
         );
         const activeCohorts = (response?.data?.data || []).filter(
-(cohort: Cohort) =>
-  cohort?.is_active !== false &&
-  cohort?.sync_status !== "closed" &&
-  cohort?.sync_status !== "full" &&
-  cohort?.sync_status !==  "draft"      );
+          (cohort: Cohort) =>
+            cohort?.is_active !== false &&
+            cohort?.sync_status !== "closed" &&
+            cohort?.sync_status !== "full" &&
+            cohort?.sync_status !== "draft"
+        );
         setCohorts(activeCohorts);
       } catch (error) {
         console.error("Error fetching cohorts", error);
@@ -244,7 +261,7 @@ export default function QueryModal({
 
     try {
       setLoading(true);
-      await axios.post(
+      const response = await axios.post(
         `${process.env.NEXT_PUBLIC_API_BASE_URL}/sponsorships/block/register`,
         {
           employer_name: form.name.trim(),
@@ -257,15 +274,25 @@ export default function QueryModal({
         },
       );
 
-      onClose();
-      setShowSuccessRequestGroup(true);
+      setToast({
+        message: response?.data?.message || "Request submitted successfully.",
+        tone: "success",
+      });
+
+      setTimeout(() => {
+        onClose();
+        setShowSuccessRequestGroup(true);
+      }, 1000);
     } catch (error) {
       const message = axios.isAxiosError(error)
         ? String(error.response?.data?.message ?? "")
         : "";
-      setSubmitError(
-        message || "We couldn't submit your request. Please try again.",
-      );
+      const displayMessage = message || "We couldn't submit your request. Please try again.";
+      setSubmitError(displayMessage);
+      setToast({
+        message: displayMessage,
+        tone: "error",
+      });
     } finally {
       setLoading(false);
     }
@@ -281,6 +308,15 @@ export default function QueryModal({
       aria-modal="true"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
+      {toast ? (
+        <div
+          className={`admin-toast admin-toast--${toast.tone}`}
+          role="status"
+          aria-live="polite"
+        >
+          {toast.message}
+        </div>
+      ) : null}
       <div
         ref={modalRef}
         className={`relative bg-white rounded-[20px] shadow-2xl overflow-y-auto w-[512px] ${inter.className}`}

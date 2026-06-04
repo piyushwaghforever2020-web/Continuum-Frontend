@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useAdminParticipants } from "@/hooks/useAdminParticipants";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import AdminHeader from "@/components/AdminHeader";
 import Sidebar from "@/components/Sidebar";
 import AdminTable, { AdminStatusBadge, AdminTableColumn, AdminToggle } from "@/components/admin/AdminTable";
@@ -424,53 +424,57 @@ export default function CohortDetailClient() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedCohortId, setSelectedCohortId] = useState<string | null>(null);
   const [togglingId, setTogglingId] = useState<string | null>(null);
+  const [toast, setToast] = useState<{
+    message: string;
+    tone: "success" | "error";
+  } | null>(null);
+
+  useEffect(() => {
+    if (!toast) return;
+
+    const timer = window.setTimeout(() => {
+      setToast(null);
+    }, 3000);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [toast]);
 
   const { handleExportParticipants, loading: isExporting } = useAdminParticipants();
 
-  useEffect(() => {
-    let active = true;
+  const loadCohort = useCallback(async () => {
+    if (!cohortId) {
+      setError("Missing cohort id.");
+      setLoading(false);
+      return;
+    }
 
-    async function loadCohort() {
-      if (!cohortId) {
-        if (!active) return;
-        setError("Missing cohort id.");
-        setLoading(false);
+    try {
+      setLoading(true);
+      setError("");
+
+      const response = await getAdminCohortById(cohortId);
+      const normalized = normalizeCohort(response);
+
+      if (!normalized) {
+        setError("Unable to load cohort details.");
+        setCohort(null);
         return;
       }
 
-      try {
-        setLoading(true);
-        setError("");
-
-        const response = await getAdminCohortById(cohortId);
-        const normalized = normalizeCohort(response);
-
-        if (!active) return;
-
-        if (!normalized) {
-          setError("Unable to load cohort details.");
-          setCohort(null);
-          return;
-        }
-
-        setCohort(normalized);
-      } catch (err) {
-        if (!active) return;
-        setError(err instanceof Error ? err.message : "Failed to load cohort details.");
-        setCohort(null);
-      } finally {
-        if (active) {
-          setLoading(false);
-        }
-      }
+      setCohort(normalized);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load cohort details.");
+      setCohort(null);
+    } finally {
+      setLoading(false);
     }
-
-    loadCohort();
-
-    return () => {
-      active = false;
-    };
   }, [cohortId]);
+
+  useEffect(() => {
+    loadCohort();
+  }, [loadCohort]);
 
   useEffect(() => {
     let active = true;
@@ -529,18 +533,35 @@ export default function CohortDetailClient() {
     }
   };
 
-  const handleToggleCohortStatus = async (id: string, currentStatus: boolean) => {
+  const handleToggleCohortStatus = useCallback(async (id: string, currentStatus: boolean) => {
     try {
       setTogglingId(id);
       const newStatus = !currentStatus;
-      await updateAdminCohortStatus(id, newStatus);
+      const response = await updateAdminCohortStatus(id, newStatus);
+
+      setToast({
+        message: response?.message || response?.data?.message || "Cohort status updated successfully.",
+        tone: "success",
+      });
+
+      await loadCohort();
       await loadCohorts();
     } catch (error) {
       console.error("Failed to update cohort status:", error);
+      const message =
+        error && typeof error === "object" && "response" in error
+          ? (error as any).response?.data?.message || (error as any).response?.data?.data?.details?.[0]
+          : error instanceof Error
+            ? error.message
+            : "Failed to update status.";
+      setToast({
+        message,
+        tone: "error",
+      });
     } finally {
       setTogglingId(null);
     }
-  };
+  }, [cohortId, loadCohort]);
 
   useEffect(() => {
     loadCohorts();
@@ -750,6 +771,16 @@ export default function CohortDetailClient() {
 
   return (
     <div className="admin-page">
+      {toast ? (
+        <div
+          className={`admin-toast admin-toast--${toast.tone}`}
+          role="status"
+          aria-live="polite"
+        >
+          {toast.message}
+        </div>
+      ) : null}
+
       <Sidebar />
 
       <div className="admin-main">
@@ -766,10 +797,20 @@ export default function CohortDetailClient() {
                   <div className="admin-detail-hero__heading">
                     <h2 className="admin-page-title">{loading ? "Loading cohort..." : cohort?.name ?? "Cohort Details"}</h2>
                   {!loading && cohort ? (
-  <AdminStatusBadge customColor={getStatusColor(cohort?.sync_status)}>
-    {cohort?.sync_status}
-  </AdminStatusBadge>
-) : null}
+                    <div className="flex items-center gap-3">
+                      <AdminStatusBadge customColor={getStatusColor(cohort?.sync_status)}>
+                        {cohort?.sync_status}
+                      </AdminStatusBadge>
+                      <AdminToggle
+                        checked={cohort?.is_active ?? true}
+                        disabled={togglingId === cohort?.id}
+                        onChange={() =>
+                          handleToggleCohortStatus(cohort?.id, cohort?.is_active ?? true)
+                        }
+                        ariaLabel={`Toggle active status for ${cohort?.name}`}
+                      />
+                    </div>
+                  ) : null}
                   </div>
                 </div>
               </div>
